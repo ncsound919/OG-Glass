@@ -43,8 +43,13 @@ export async function listAvailablePresets(): Promise<string[]> {
 // ── Disk reader ───────────────────────────────────────────────────────────────
 
 async function readPresetFromDisk(presetId: string): Promise<Preset> {
-  const presetDir = path.join(PRESETS_DIR, presetId);
+  const presetsRoot = path.resolve(PRESETS_DIR);
+  const presetDir = path.resolve(presetsRoot, presetId);
 
+  // Ensure the resolved preset directory is within the presets root to prevent path traversal
+  if (!presetDir.startsWith(presetsRoot + path.sep)) {
+    throw new Error(`Invalid preset ID '${presetId}'`);
+  }
   // Check directory exists
   try {
     await fs.access(presetDir);
