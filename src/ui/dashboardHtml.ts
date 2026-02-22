@@ -797,12 +797,35 @@ export const DASHBOARD_HTML = /* html */ `<!DOCTYPE html>
         for (const [name, val] of Object.entries(combined).slice(0, 12)) {
           const sw = document.createElement('div');
           sw.className = 'color-swatch';
-          sw.innerHTML =
-            '<div class="swatch-color" style="background:' + esc(String(val)) + '"></div>' +
-            '<div class="swatch-info">' +
-              '<div class="swatch-name">' + esc(name) + '</div>' +
-              '<div class="swatch-value">' + esc(String(val)) + '</div>' +
-            '</div>';
+
+          const swatchColor = document.createElement('div');
+          swatchColor.className = 'swatch-color';
+          const colorString = String(val);
+          // Allow only typical color formats: hex, rgb[a], hsl[a]
+          if (
+            /^#([0-9a-fA-F]{3,8})$/.test(colorString) ||
+            /^rgba?\(/i.test(colorString) ||
+            /^hsla?\(/i.test(colorString)
+          ) {
+            swatchColor.style.background = colorString;
+          }
+
+          const info = document.createElement('div');
+          info.className = 'swatch-info';
+
+          const nameEl = document.createElement('div');
+          nameEl.className = 'swatch-name';
+          nameEl.textContent = name;
+
+          const valueEl = document.createElement('div');
+          valueEl.className = 'swatch-value';
+          valueEl.textContent = colorString;
+
+          info.appendChild(nameEl);
+          info.appendChild(valueEl);
+
+          sw.appendChild(swatchColor);
+          sw.appendChild(info);
           cg.appendChild(sw);
         }
         colors.appendChild(cg);
