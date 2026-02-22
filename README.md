@@ -153,8 +153,17 @@ The UI communicates with the server via a REST API also available at `/api/*`.
 1. list_style_categories()                    # Discover available aesthetics
 2. suggest_style("dark sci-fi dashboard")     # Get preset recommendation
 3. load_preset("style-neon-cyberpunk")        # Activate chosen style
-4. generate_color_palette({ seed_color: "#00ff88", harmony: "triadic" })
-5. apply_token_overrides({ overrides: <palette> })
+4. const palette = generate_color_palette({ seed_color: "#00ff88", harmony: "triadic" })
+5. apply_token_overrides({
+     overrides: {
+       colors: {
+         accent: {
+           primary: palette.semantic.accent,
+           highlight: palette.semantic.highlight
+         }
+       }
+     }
+   })
 6. autocorrect_component(code)               # Fix component on save
 7. validate_ui(code)                         # Get conformance score
 8. generate_tokens({ format: "css" })        # Export CSS variables
