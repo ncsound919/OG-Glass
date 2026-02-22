@@ -86,8 +86,14 @@ export const ListPresetsSchema = {
 };
 
 export const DiffPresetsSchema = {
-  preset_a: z.string().describe("First preset ID"),
-  preset_b: z.string().describe("Second preset ID"),
+  preset_a: z
+    .string()
+    .regex(/^[a-z0-9-]+$/, "Must be kebab-case")
+    .describe("First preset ID"),
+  preset_b: z
+    .string()
+    .regex(/^[a-z0-9-]+$/, "Must be kebab-case")
+    .describe("Second preset ID"),
   scope: z
     .enum(["tokens", "components", "layouts", "all"])
     .default("all")
