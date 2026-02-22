@@ -18,12 +18,15 @@ export function invalidateCache(presetId: string): void {
 
 // ── Main loader ───────────────────────────────────────────────────────────────
 
-export async function loadPreset(presetId: string): Promise<Preset> {
+export async function loadPreset(
+  presetId: string,
+  _visitedIds: ReadonlySet<string> = new Set()
+): Promise<Preset> {
   if (cache.has(presetId)) {
     return cache.get(presetId)!;
   }
 
-  const preset = await readPresetFromDisk(presetId);
+  const preset = await readPresetFromDisk(presetId, _visitedIds);
   cache.set(presetId, preset);
   return preset;
 }
@@ -42,7 +45,10 @@ export async function listAvailablePresets(): Promise<string[]> {
 
 // ── Disk reader ───────────────────────────────────────────────────────────────
 
-async function readPresetFromDisk(presetId: string): Promise<Preset> {
+async function readPresetFromDisk(
+  presetId: string,
+  visitedIds: ReadonlySet<string> = new Set()
+): Promise<Preset> {
   const presetsRoot = path.resolve(PRESETS_DIR);
   const presetDir = path.resolve(presetsRoot, presetId);
 
@@ -75,7 +81,13 @@ async function readPresetFromDisk(presetId: string): Promise<Preset> {
   // Resolve parent tokens (inheritance chain)
   let tokens: DesignTokens;
   if (manifest.extends) {
-    const parent = await loadPreset(manifest.extends);
+    if (visitedIds.has(manifest.extends)) {
+      throw new Error(
+        `Circular preset inheritance detected: '${manifest.extends}' is already in the chain [${[...visitedIds].join(" → ")}]`
+      );
+    }
+    const nextVisited = new Set([...visitedIds, presetId]);
+    const parent = await loadPreset(manifest.extends, nextVisited);
     tokens = deepmerge(parent.tokens, ownTokens as DesignTokens, {
       arrayMerge: (_dst, src) => src,
     });
@@ -106,7 +118,8 @@ async function readPresetFromDisk(presetId: string): Promise<Preset> {
 
   // Inherit parent components if extends
   if (manifest.extends) {
-    const parent = await loadPreset(manifest.extends);
+    const nextVisited = new Set([...visitedIds, presetId]);
+    const parent = await loadPreset(manifest.extends, nextVisited);
     for (const [name, template] of Object.entries(parent.components)) {
       if (!(name in components)) {
         components[name] = template;
@@ -130,7 +143,8 @@ async function readPresetFromDisk(presetId: string): Promise<Preset> {
 
   // Inherit parent layouts if extends
   if (manifest.extends) {
-    const parent = await loadPreset(manifest.extends);
+    const nextVisited = new Set([...visitedIds, presetId]);
+    const parent = await loadPreset(manifest.extends, nextVisited);
     for (const [name, layout] of Object.entries(parent.layouts)) {
       if (!(name in layouts)) {
         layouts[name] = layout;

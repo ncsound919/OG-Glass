@@ -63,6 +63,7 @@ export const ApplyTokenOverridesSchema = {
 export const LoadPresetSchema = {
   preset_id: z
     .string()
+    .regex(/^[a-z0-9-]+$/, "Must be kebab-case")
     .describe("Preset folder name in /presets (e.g. 'glassmorphic-base')"),
   force_reload: z
     .boolean()

@@ -381,16 +381,17 @@ function check_accessibilityBasics(code: string, issues: UIIssue[]): void {
 
 // ── Utility helpers ───────────────────────────────────────────────────────────
 
-function suggestColorToken(match: string, tokens: DesignTokens): string {
+function suggestColorToken(match: string, _tokens: DesignTokens): string {
+  // Return just the replacement value (CSS var reference), preserving the original property context.
   // Very lightweight heuristic — a real implementation would use chroma.js
-  // to find the nearest token by color distance
+  // to find the nearest token by color distance.
   if (/background/.test(match)) {
-    return `background: var(--color-surface);`;
+    return `var(--color-surface)`;
   }
   if (/border/.test(match)) {
-    return `border-color: var(--color-border);`;
+    return `var(--color-border)`;
   }
-  return `color: var(--color-text-primary);`;
+  return `var(--color-text-primary)`;
 }
 
 function injectGlassStyles(

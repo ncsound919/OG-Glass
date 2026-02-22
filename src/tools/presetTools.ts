@@ -5,9 +5,8 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import fs from "fs/promises";
 import path from "path";
-import deepmerge from "deepmerge";
 import { loadPreset, listAvailablePresets, invalidateCache } from "../services/presetLoader.js";
-import { setActivePreset, getSessionState, resetSession, getActivePreset } from "../services/sessionState.js";
+import { setActivePreset, getSessionState } from "../services/sessionState.js";
 import {
   LoadPresetSchema,
   SwapTemplateSchema,
@@ -17,7 +16,7 @@ import {
   GetSessionStateSchema,
 } from "../schemas/toolSchemas.js";
 import { PRESETS_DIR, MANIFEST_FILE, TOKENS_FILE } from "../constants.js";
-import type { PresetDiff, PresetManifest, DesignTokens } from "../types/index.js";
+import type { PresetDiff, PresetManifest } from "../types/index.js";
 
 export function registerPresetTools(server: McpServer): void {
 
