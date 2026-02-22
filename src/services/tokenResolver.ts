@@ -74,9 +74,15 @@ export function generateCSSVariables(tokens: DesignTokens): string {
   tokens.spacing.scale.forEach((v, i) => lines.push(`  --spacing-${i}: ${v}px;`));
   lines.push(`  --sidebar-width: ${tokens.spacing.sidebar.width};`);
   lines.push(`  --sidebar-collapsed-width: ${tokens.spacing.sidebar.collapsedWidth};`);
+  lines.push(`  --sidebar-padding: ${tokens.spacing.sidebar.padding};`);
   lines.push(`  --card-padding: ${tokens.spacing.card.padding};`);
   lines.push(`  --card-gap: ${tokens.spacing.card.gap};`);
   lines.push(`  --card-radius: ${tokens.spacing.card.borderRadius};`);
+  if (tokens.spacing.settings) {
+    for (const [key, val] of Object.entries(tokens.spacing.settings)) {
+      lines.push(`  --settings-${key}: ${val};`);
+    }
+  }
 
   // Typography
   lines.push("\n  /* Typography */");
