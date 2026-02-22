@@ -551,6 +551,44 @@ export const DASHBOARD_HTML = /* html */ `<!DOCTYPE html>
     .harmony-btn {
       padding: 6px 12px;
       border-radius: 8px;
+    /* ── Category badge ──────────────────────────────────────────────────────── */
+    .category-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .cat-shell      { background: rgba(99,102,241,0.15); color: #818cf8; }
+    .cat-surface    { background: rgba(14,165,233,0.15);  color: #38bdf8; }
+    .cat-settings   { background: rgba(245,158,11,0.15);  color: #fbbf24; }
+    .cat-navigation { background: rgba(34,197,94,0.15);   color: #4ade80; }
+    .cat-data       { background: rgba(236,72,153,0.15);  color: #f472b6; }
+    .cat-feedback   { background: rgba(168,85,247,0.15);  color: #c084fc; }
+
+    /* ── Component cards ─────────────────────────────────────────────────────── */
+    .component-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      transition: all 200ms ease;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .component-card:hover { border-color: rgba(99,102,241,0.3); }
+    .component-name { font-size: 0.9375rem; font-weight: 600; }
+    .component-desc { font-size: 0.8125rem; color: var(--text-secondary); line-height: 1.4; flex: 1; }
+    .component-variants { font-size: 0.75rem; color: var(--text-muted); }
+
+    /* ── Category filter ─────────────────────────────────────────────────────── */
+    .filter-group { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
+    .filter-btn {
+      padding: 5px 12px;
+      border-radius: 20px;
       border: 1px solid var(--border);
       background: none;
       color: var(--text-secondary);
@@ -565,6 +603,25 @@ export const DASHBOARD_HTML = /* html */ `<!DOCTYPE html>
       border-color: rgba(99,102,241,0.35);
       color: var(--accent-hover);
     }
+    .filter-btn.active { background: rgba(99,102,241,0.15); color: var(--accent-hover); border-color: rgba(99,102,241,0.3); }
+    .filter-btn:hover  { background: rgba(255,255,255,0.05); color: var(--text); }
+
+    /* ── Visualizer ──────────────────────────────────────────────────────────── */
+    .viz-select-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .viz-props { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+    .viz-prop-row { display: flex; flex-direction: column; gap: 4px; }
+    .viz-prop-label { font-size: 0.75rem; color: var(--text-secondary); font-weight: 500; }
+    .viz-prop-input {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 0.8125rem;
+      padding: 6px 10px;
+      font-family: inherit;
+    }
+    .viz-prop-input:focus { outline: none; border-color: rgba(99,102,241,0.5); }
   </style>
 </head>
 <body>
@@ -606,6 +663,12 @@ export const DASHBOARD_HTML = /* html */ `<!DOCTYPE html>
       </button>
       <button class="nav-item" data-section="scaffold">
         <span class="nav-icon">⊕</span> Scaffold
+      </button>
+      <button class="nav-item" data-section="components">
+        <span class="nav-icon">🧩</span> Components
+      </button>
+      <button class="nav-item" data-section="visualizer">
+        <span class="nav-icon">👁</span> Visualizer
       </button>
 
       <div class="sidebar-footer">
@@ -827,6 +890,30 @@ export const DASHBOARD_HTML = /* html */ `<!DOCTYPE html>
           </div>
         </div>
 
+        <!-- Components ─────────────────────────────────────────────────────── -->
+        <div class="section" id="sect-components">
+          <div class="section-title">Component Library</div>
+          <div class="section-sub">Browse components by category. Menu populates from the active preset's asset folders.</div>
+          <div id="componentsContent">
+            <div class="empty-state">
+              <div class="empty-icon">🧩</div>
+              <div class="empty-msg">Load a preset to browse its components.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Visualizer ─────────────────────────────────────────────────────── -->
+        <div class="section" id="sect-visualizer">
+          <div class="section-title">IDE Component Visualizer</div>
+          <div class="section-sub">Preview and generate component code from the active preset's asset library.</div>
+          <div id="vizContent">
+            <div class="empty-state">
+              <div class="empty-icon">👁</div>
+              <div class="empty-msg">Load a preset to use the visualizer.</div>
+            </div>
+          </div>
+        </div>
+
       </div><!-- /.content -->
     </div><!-- /.main -->
   </div><!-- /.app -->
@@ -848,6 +935,15 @@ export const DASHBOARD_HTML = /* html */ `<!DOCTYPE html>
       correct:   'Autocorrect Component',
       export:    'Export Tokens',
       scaffold:  'Scaffold Preset',
+      dashboard:   'Dashboard',
+      presets:     'Preset Library',
+      tokens:      'Design Tokens',
+      validate:    'Validate Component',
+      correct:     'Autocorrect Component',
+      export:      'Export Tokens',
+      scaffold:    'Scaffold Preset',
+      components:  'Component Library',
+      visualizer:  'IDE Visualizer',
     };
 
     // ── Navigation ─────────────────────────────────────────────────────────────
@@ -871,6 +967,11 @@ export const DASHBOARD_HTML = /* html */ `<!DOCTYPE html>
       if (section === 'palette')  initPaletteSection();
       if (section === 'tokens')   loadTokensSection();
       if (section === 'scaffold') loadScaffoldSection();
+      if (section === 'presets')     loadPresetsSection();
+      if (section === 'tokens')      loadTokensSection();
+      if (section === 'scaffold')    loadScaffoldSection();
+      if (section === 'components')  loadComponentsSection();
+      if (section === 'visualizer')  loadVisualizerSection();
     }
 
     document.querySelectorAll('.nav-item[data-section]').forEach(btn => {
@@ -1671,7 +1772,7 @@ export const DASHBOARD_HTML = /* html */ `<!DOCTYPE html>
         });
         if (data.error) throw new Error(data.error);
         alertEl.className = 'alert alert-success show';
-        alertEl.textContent = "\u2713 Created preset '" + preset_id + "' successfully.";
+        alertEl.textContent = "✓ Created preset '" + preset_id + "' successfully.";
         document.getElementById('scaffoldId').value   = '';
         document.getElementById('scaffoldName').value = '';
         document.getElementById('scaffoldDesc').value = '';
@@ -1697,6 +1798,272 @@ export const DASHBOARD_HTML = /* html */ `<!DOCTYPE html>
     }
 
     function escAttr(str) { return esc(str); }
+
+    // ── Components ─────────────────────────────────────────────────────────────
+    let currentCategoryFilter = 'all';
+    let componentsData = [];
+
+    async function loadComponentsSection() {
+      const el = document.getElementById('componentsContent');
+      if (!session.activePresetId) {
+        el.innerHTML = '<div class="empty-state"><div class="empty-icon">🧩</div><div class="empty-msg">Load a preset to browse its components.</div></div>';
+        return;
+      }
+      el.innerHTML = '<div class="spinner"></div>';
+      try {
+        const data = await api('GET', '/api/components');
+        componentsData = data.components || [];
+        renderComponentsGrid(el, componentsData, currentCategoryFilter);
+      } catch (err) {
+        el.innerHTML = '<div class="alert alert-error show">Failed to load components: ' + esc(String(err)) + '</div>';
+      }
+    }
+
+    function renderComponentsGrid(container, components, filter) {
+      container.innerHTML = '';
+      const cats = ['all', ...Array.from(new Set(components.map(function(c) { return c.category; })))];
+
+      // Category filter strip
+      const fg = document.createElement('div');
+      fg.className = 'filter-group';
+      cats.forEach(function(cat) {
+        const btn = document.createElement('button');
+        btn.className = 'filter-btn' + (filter === cat ? ' active' : '');
+        btn.textContent = cat === 'all' ? 'All' : cat.charAt(0).toUpperCase() + cat.slice(1);
+        btn.addEventListener('click', function() {
+          currentCategoryFilter = cat;
+          renderComponentsGrid(container, componentsData, cat);
+        });
+        fg.appendChild(btn);
+      });
+      container.appendChild(fg);
+
+      const filtered = filter === 'all' ? components : components.filter(function(c) { return c.category === filter; });
+
+      if (!filtered.length) {
+        const empty = document.createElement('div');
+        empty.className = 'empty-state';
+        empty.innerHTML = '<div class="empty-icon">🧩</div><div class="empty-msg">No components in this category.</div>';
+        container.appendChild(empty);
+        return;
+      }
+
+      const grid = document.createElement('div');
+      grid.className = 'card-grid';
+      filtered.forEach(function(comp) {
+        const card = document.createElement('div');
+        card.className = 'component-card';
+        const catClass = 'cat-' + (comp.category || 'surface');
+        card.innerHTML =
+          '<div class="flex items-center justify-between">' +
+            '<span class="component-name">' + esc(comp.name) + '</span>' +
+            '<span class="category-badge ' + escAttr(catClass) + '">' + esc(comp.category || '') + '</span>' +
+          '</div>' +
+          '<div class="component-desc">' + esc(comp.description || '') + '</div>' +
+          (comp.variants && comp.variants.length
+            ? '<div class="component-variants">Variants: ' + esc(comp.variants.join(', ')) + '</div>'
+            : '') +
+          '<div class="flex gap-2 mt-2">' +
+            '<button class="btn btn-primary btn-sm viz-from-comp-btn" data-name="' + escAttr(comp.name) + '">&#x1F441; Visualize</button>' +
+            '<button class="btn btn-ghost btn-sm gen-comp-btn" data-name="' + escAttr(comp.name) + '">Generate</button>' +
+          '</div>';
+        grid.appendChild(card);
+      });
+      container.appendChild(grid);
+
+      container.querySelectorAll('.viz-from-comp-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          navigate('visualizer');
+          selectVisualizerComponent(btn.dataset.name);
+        });
+      });
+
+      container.querySelectorAll('.gen-comp-btn').forEach(function(btn) {
+        btn.addEventListener('click', async function() {
+          const origText = btn.textContent;
+          btn.textContent = '…';
+          btn.disabled = true;
+          try {
+            const data = await api('POST', '/api/components/generate', { template_name: btn.dataset.name });
+            if (data.error) throw new Error(data.error);
+            navigate('visualizer');
+            await loadVisualizerSection();
+            const codeEl = document.getElementById('vizCodeOutput');
+            if (codeEl) codeEl.textContent = data.code || '';
+            const sel = document.getElementById('vizComponentSelect');
+            if (sel) { sel.value = btn.dataset.name; onVizComponentChange(); }
+          } catch (err) {
+            alert('Error: ' + String(err.message || err));
+          } finally {
+            btn.textContent = origText;
+            btn.disabled = false;
+          }
+        });
+      });
+    }
+
+    // ── Visualizer ─────────────────────────────────────────────────────────────
+    async function loadVisualizerSection() {
+      const el = document.getElementById('vizContent');
+      if (!session.activePresetId) {
+        el.innerHTML = '<div class="empty-state"><div class="empty-icon">&#x1F441;</div><div class="empty-msg">Load a preset to use the visualizer.</div></div>';
+        return;
+      }
+
+      // Only build the shell once; refresh assets on each visit
+      if (!document.getElementById('vizComponentSelect')) {
+        el.innerHTML = '';
+
+        // Controls card
+        const controls = document.createElement('div');
+        controls.className = 'card mb-4';
+        controls.innerHTML =
+          '<div class="viz-select-row">' +
+            '<div class="form-group" style="margin:0"><label>Component</label>' +
+              '<select id="vizComponentSelect"><option value="">— Select a component —</option></select>' +
+            '</div>' +
+            '<div class="form-group" style="margin:0"><label>Variant</label>' +
+              '<select id="vizVariantSelect"><option value="">default</option></select>' +
+            '</div>' +
+          '</div>' +
+          '<div id="vizPropsPanel" class="viz-props"></div>' +
+          '<button class="btn btn-primary" id="vizRenderBtn"><span>&#x25BA;</span> Render</button>';
+        el.appendChild(controls);
+
+        // Output card
+        const output = document.createElement('div');
+        output.className = 'card';
+        output.innerHTML =
+          '<div class="flex justify-between items-center mb-3">' +
+            '<span class="font-semibold text-sm">Generated Code</span>' +
+            '<button class="btn btn-ghost btn-sm" id="vizCopyBtn">Copy</button>' +
+          '</div>' +
+          '<div class="copy-wrap">' +
+            '<div class="code-output" id="vizCodeOutput" style="min-height:200px">Select a component and click Render to generate code.</div>' +
+          '</div>';
+        el.appendChild(output);
+
+        document.getElementById('vizComponentSelect').addEventListener('change', onVizComponentChange);
+        document.getElementById('vizRenderBtn').addEventListener('click', onVizRender);
+        document.getElementById('vizCopyBtn').addEventListener('click', function() {
+          const text = document.getElementById('vizCodeOutput').textContent || '';
+          navigator.clipboard.writeText(text).then(function() {
+            const btn = document.getElementById('vizCopyBtn');
+            btn.textContent = 'Copied!';
+            btn.classList.add('btn-success');
+            setTimeout(function() { btn.textContent = 'Copy'; btn.classList.remove('btn-success'); }, 2000);
+          });
+        });
+      }
+
+      await refreshVisualizerAssets();
+    }
+
+    async function refreshVisualizerAssets() {
+      const sel = document.getElementById('vizComponentSelect');
+      if (!sel) return;
+      const currentVal = sel.value;
+      sel.innerHTML = '<option value="">— Select a component —</option>';
+      try {
+        const data = await api('GET', '/api/components');
+        (data.components || []).forEach(function(c) {
+          const opt = document.createElement('option');
+          opt.value = c.name;
+          opt.textContent = c.name + ' (' + (c.category || '') + ')';
+          opt.dataset.variants = JSON.stringify(c.variants || []);
+          opt.dataset.props = JSON.stringify(c.props || []);
+          sel.appendChild(opt);
+        });
+        if (currentVal) sel.value = currentVal;
+        if (sel.value) onVizComponentChange();
+      } catch (_) { /* server not ready */ }
+    }
+
+    function onVizComponentChange() {
+      const sel = document.getElementById('vizComponentSelect');
+      const varSel = document.getElementById('vizVariantSelect');
+      const propsPanel = document.getElementById('vizPropsPanel');
+      if (!sel || !varSel || !propsPanel) return;
+
+      const opt = sel.options[sel.selectedIndex];
+      varSel.innerHTML = '<option value="">default</option>';
+      try {
+        JSON.parse(opt.dataset.variants || '[]').forEach(function(v) {
+          const o = document.createElement('option');
+          o.value = v; o.textContent = v;
+          varSel.appendChild(o);
+        });
+      } catch (_) {}
+
+      propsPanel.innerHTML = '';
+      try {
+        const props = JSON.parse(opt.dataset.props || '[]');
+        if (props.length) {
+          const lbl = document.createElement('div');
+          lbl.className = 'text-xs text-secondary mb-1';
+          lbl.textContent = 'Props (optional):';
+          propsPanel.appendChild(lbl);
+          props.forEach(function(propName) {
+            const row = document.createElement('div');
+            row.className = 'viz-prop-row';
+            row.innerHTML =
+              '<label class="viz-prop-label">' + esc(propName) + '</label>' +
+              '<input class="viz-prop-input" id="viz-prop-' + escAttr(propName) + '" type="text" placeholder="value…">';
+            propsPanel.appendChild(row);
+          });
+        }
+      } catch (_) {}
+    }
+
+    async function onVizRender() {
+      const sel = document.getElementById('vizComponentSelect');
+      const varSel = document.getElementById('vizVariantSelect');
+      const codeEl = document.getElementById('vizCodeOutput');
+      if (!sel || !codeEl) return;
+      const templateName = sel.value;
+      if (!templateName) { codeEl.textContent = 'Select a component first.'; return; }
+
+      codeEl.textContent = 'Generating…';
+      const props = {};
+      document.querySelectorAll('.viz-prop-input').forEach(function(input) {
+        const key = input.id.replace('viz-prop-', '');
+        if (input.value.trim()) props[key] = input.value.trim();
+      });
+      const variant = varSel ? (varSel.value || undefined) : undefined;
+
+      try {
+        const data = await api('POST', '/api/components/generate', { template_name: templateName, props, variant });
+        if (data.error) throw new Error(data.error);
+        codeEl.textContent = data.code || '';
+      } catch (err) {
+        codeEl.textContent = 'Error: ' + String(err.message || err);
+      }
+    }
+
+    function selectVisualizerComponent(name) {
+      let retries = 0;
+      const MAX_RETRIES = 50; // ~3 seconds at 60ms intervals
+      function trySelect() {
+        const sel = document.getElementById('vizComponentSelect');
+        if (!sel) return;
+        const found = Array.from(sel.options).some(function(o) { return o.value === name; });
+        if (found) {
+          sel.value = name;
+          onVizComponentChange();
+        } else if (++retries < MAX_RETRIES) {
+          setTimeout(trySelect, 60);
+        } else {
+          const codeEl = document.getElementById('vizCodeOutput');
+          if (codeEl) codeEl.textContent = 'Component "' + name + '" not found in the active preset.';
+        }
+      }
+      const sel = document.getElementById('vizComponentSelect');
+      if (!sel) {
+        loadVisualizerSection().then(trySelect);
+        return;
+      }
+      trySelect();
+    }
 
     // ── Init ───────────────────────────────────────────────────────────────────
     refreshSession();
