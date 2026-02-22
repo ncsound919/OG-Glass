@@ -8,6 +8,7 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import express from "express";
 import { registerPresetTools } from "./tools/presetTools.js";
 import { registerCorrectionTools } from "./tools/correctionTools.js";
+import { registerUIRoutes } from "./routes/uiRoutes.js";
 import { startWatching } from "./services/fileWatcher.js";
 import { getActivePresetId } from "./services/sessionState.js";
 import { invalidateCache, loadPreset } from "./services/presetLoader.js";
@@ -75,6 +76,9 @@ async function runHTTP(): Promise<void> {
       activePreset: getActivePresetId(),
     });
   });
+
+  // Register Design Studio UI routes (dashboard + REST API)
+  registerUIRoutes(app);
 
   const port = parseInt(process.env.PORT ?? "3000");
   app.listen(port, () => {

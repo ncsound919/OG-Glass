@@ -20,9 +20,13 @@ ui-preset-mcp-server/
 │   │   ├── uiCorrector.ts          # AST correction engine (10 correction passes)
 │   │   ├── tokenResolver.ts        # Resolves {{token:x.y.z}} placeholders + export generators
 │   │   └── fileWatcher.ts          # Hot-reload presets on disk changes (dev mode)
-│   └── tools/
-│       ├── presetTools.ts          # load_preset, swap_template, list_presets, diff_presets, scaffold_preset
-│       └── correctionTools.ts      # autocorrect_component, validate_ui, generate_component, generate_tokens, apply_token_overrides
+│   ├── tools/
+│   │   ├── presetTools.ts          # load_preset, swap_template, list_presets, diff_presets, scaffold_preset
+│   │   └── correctionTools.ts      # autocorrect_component, validate_ui, generate_component, generate_tokens, apply_token_overrides
+│   ├── routes/
+│   │   └── uiRoutes.ts             # REST API + Design Studio dashboard (GET /, /api/*)
+│   └── ui/
+│       └── dashboardHtml.ts        # Embedded glassmorphic Design Studio HTML (7 sections)
 └── presets/
     ├── glassmorphic-base/          # Core preset (all others inherit from this)
     │   ├── manifest.json
@@ -82,6 +86,40 @@ TRANSPORT=http PORT=3001 node dist/index.js
 ```bash
 WATCH_PRESETS=true node dist/index.js
 ```
+
+## Design Studio UI
+
+When running in HTTP mode, a glassmorphic **Design Studio** mini UI is served at `GET /`.
+
+![OG Glass Design Studio](https://github.com/user-attachments/assets/c1ebb7f4-2a47-416b-ad1b-581a0b8df855)
+
+### UI Sections
+
+| Section | Description |
+|---------|-------------|
+| **Dashboard** | Active preset overview with component/layout stats and color palette preview |
+| **Presets** | Browse all presets in cards; click Load to activate any preset instantly |
+| **Tokens** | Visual token viewer — color swatches, typography scale, blur, spacing, animation |
+| **Validate** | Paste React code and get a conformance score (0–100) with issue list |
+| **Correct** | Auto-correct React code against the active preset; choose context and mode |
+| **Export** | Generate CSS custom properties, TypeScript const, JSON, or Tailwind config |
+| **Scaffold** | Form to create a new preset from any parent with optional accent color |
+
+The UI communicates with the server via a REST API also available at `/api/*`.
+
+### REST API (HTTP mode)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/presets` | GET | List all presets with metadata |
+| `/api/presets/load` | POST | Load and activate a preset `{ preset_id }` |
+| `/api/session` | GET | Get active preset and override state |
+| `/api/tokens` | GET | Get effective tokens for the active preset |
+| `/api/tokens/export` | POST | Export tokens `{ format: 'css'|'js'|'json'|'tailwind' }` |
+| `/api/tokens/overrides` | POST | Apply runtime token overrides `{ overrides }` |
+| `/api/validate` | POST | Validate React code `{ code, include_suggestions }` |
+| `/api/correct` | POST | Autocorrect React code `{ code, context, dry_run }` |
+| `/api/scaffold` | POST | Create new preset `{ preset_id, name, description, extends, accent_color }` |
 
 ## Typical Workflow
 
