@@ -19,6 +19,7 @@ import {
   generateCSSVariables,
   generateTokenExport,
   generateTailwindExtend,
+  resolveTokens,
 } from "../services/tokenResolver.js";
 import { PRESETS_DIR, MANIFEST_FILE, TOKENS_FILE } from "../constants.js";
 import type { DesignTokens, PresetManifest } from "../types/index.js";
@@ -306,6 +307,94 @@ export function registerUIRoutes(app: Express): void {
           // best-effort cleanup; ignore secondary errors
         }
       }
+      res.status(500).json({ error: String(err) });
+    }
+  });
+
+  // ── List components ─────────────────────────────────────────────────────────
+  app.get("/api/components", (_req: Request, res: Response): void => {
+    try {
+      const state = getSessionState();
+      if (!state.activePreset) {
+        res.status(400).json({ error: "No active preset. Load a preset first." });
+        return;
+      }
+      const components = Object.values(state.activePreset.components).map((t) => ({
+        name: t.name,
+        category: t.category,
+        description: t.description,
+        variants: Object.keys(t.variants ?? {}),
+        props: Object.keys(t.propsSchema),
+      }));
+      res.json({ components });
+    } catch (err) {
+      res.status(500).json({ error: String(err) });
+    }
+  });
+
+  // ── List layouts ────────────────────────────────────────────────────────────
+  app.get("/api/layouts", (_req: Request, res: Response): void => {
+    try {
+      const state = getSessionState();
+      if (!state.activePreset) {
+        res.status(400).json({ error: "No active preset. Load a preset first." });
+        return;
+      }
+      const layouts = Object.values(state.activePreset.layouts).map((l) => ({
+        name: l.name,
+        description: l.description,
+        regions: l.regions,
+      }));
+      res.json({ layouts });
+    } catch (err) {
+      res.status(500).json({ error: String(err) });
+    }
+  });
+
+  // ── Generate component ──────────────────────────────────────────────────────
+  app.post("/api/components/generate", writeLimiter, (req: Request, res: Response): void => {
+    try {
+      const { template_name, props = {}, variant } = req.body as {
+        template_name?: string;
+        props?: Record<string, unknown>;
+        variant?: string;
+      };
+      if (!template_name || typeof template_name !== "string") {
+        res.status(400).json({ error: "template_name is required" });
+        return;
+      }
+      const state = getSessionState();
+      if (!state.activePreset) {
+        res.status(400).json({ error: "No active preset. Load a preset first." });
+        return;
+      }
+      const template = state.activePreset.components[template_name];
+      if (!template) {
+        const available = Object.keys(state.activePreset.components).join(", ");
+        res.status(404).json({
+          error: `Template '${template_name}' not found. Available: ${available}`,
+        });
+        return;
+      }
+      const tokens = getEffectiveTokens();
+      const activeTemplate =
+        variant && template.variants?.[variant]
+          ? { ...template, ...template.variants[variant] }
+          : template;
+      let code = resolveTokens(activeTemplate.template, tokens);
+      const safeProps = typeof props === "object" && props !== null ? props : {};
+      for (const [key, value] of Object.entries(safeProps)) {
+        const placeholder = new RegExp(`\\{\\{prop:${key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\}\\}`, "g");
+        code = code.replace(placeholder, String(value));
+      }
+      res.json({
+        code,
+        templateUsed: template_name,
+        variant: variant ?? "default",
+        availableProps: activeTemplate.propsSchema,
+        availableVariants: Object.keys(template.variants ?? {}),
+      });
+    } catch (err) {
       res.status(500).json({ error: String(err) });
     }
   });
