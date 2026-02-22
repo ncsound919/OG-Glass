@@ -281,10 +281,16 @@ Requires active preset.`,
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
+function escapeRegExp(str: string): string {
+  // Escape characters that have special meaning in regular expressions
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function injectProps(template: string, props: Record<string, unknown>): string {
   let result = template;
   for (const [key, value] of Object.entries(props)) {
-    const placeholder = new RegExp(`\\{\\{prop:${key}\\}\\}`, "g");
+    const escapedKey = escapeRegExp(key);
+    const placeholder = new RegExp(`\\{\\{prop:${escapedKey}\\}\\}`, "g");
     result = result.replace(placeholder, String(value));
   }
   return result;
