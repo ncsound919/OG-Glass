@@ -687,8 +687,46 @@ export const DASHBOARD_HTML = /* html */ `<!DOCTYPE html>
     async function api(method, path, body) {
       const opts = { method, headers: { 'Content-Type': 'application/json' } };
       if (body !== undefined) opts.body = JSON.stringify(body);
-      const res = await fetch(path, opts);
-      return res.json();
+
+      let res;
+      try {
+        res = await fetch(path, opts);
+      } catch (err) {
+        const networkError = new Error('Network error while calling API');
+        // Attach original error for debugging
+        networkError.cause = err;
+        throw networkError;
+      }
+
+      let text = '';
+      try {
+        text = await res.text();
+      } catch (_) {
+        // Ignore body read errors; we'll still surface status below.
+      }
+
+      let data = null;
+      if (text) {
+        try {
+          data = JSON.parse(text);
+        } catch (_) {
+          // Non-JSON response; leave data as null and keep raw text.
+        }
+      }
+
+      if (!res.ok) {
+        const serverMessage =
+          (data && (data.error || data.message)) ||
+          res.statusText ||
+          'Request failed';
+        const error = new Error(serverMessage);
+        error.status = res.status;
+        error.body = data !== null ? data : text;
+        throw error;
+      }
+
+      // Prefer parsed JSON when available; otherwise fall back to raw text.
+      return data !== null ? data : text;
     }
 
     // ── Session polling ────────────────────────────────────────────────────────
