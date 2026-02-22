@@ -240,6 +240,19 @@ export function registerUIRoutes(app: Express): void {
         return;
       }
 
+      // Validate accent color format if provided (e.g. "#RRGGBB")
+      if (accent_color && !/^#[0-9a-fA-F]{6}$/.test(accent_color)) {
+        res.status(400).json({ error: "accent_color must be a valid hex color (e.g. #3366ff)" });
+        return;
+      }
+
+      // Validate that the base preset we extend from exists / is loadable
+      try {
+        await loadPreset(extendsId);
+      } catch {
+        res.status(400).json({ error: `Unknown extends preset '${extendsId}'` });
+        return;
+      }
       const presetDir = path.join(PRESETS_DIR, preset_id);
 
       // Create the preset root directory; catch EEXIST to detect duplicates atomically
