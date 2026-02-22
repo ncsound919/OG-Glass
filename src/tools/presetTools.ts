@@ -267,8 +267,8 @@ Returns: Path to new preset directory and files created.`,
         layouts: [],
       };
 
-      const tokenOverrides: Partial<DesignTokens> = accent_color
-        ? { colors: { accent: { primary: accent_color } } as unknown as DesignTokens["colors"] }
+      const tokenOverrides = accent_color
+        ? { colors: { accent: { primary: accent_color } } }
         : {};
 
       await fs.writeFile(

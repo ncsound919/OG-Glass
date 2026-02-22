@@ -78,21 +78,25 @@ async function readPresetFromDisk(presetId: string): Promise<Preset> {
     tokens = ownTokens as DesignTokens;
   }
 
-  // Load components
+  // Load components — scan all subdirectories dynamically
   const components: Record<string, ComponentTemplate> = {};
-  const componentDirs = ["shell", "surfaces", "settings", "navigation", "data", "feedback"];
-  for (const dir of componentDirs) {
-    const dirPath = path.join(presetDir, "components", dir);
-    try {
+  const componentsRoot = path.join(presetDir, "components");
+  try {
+    const categoryEntries = await fs.readdir(componentsRoot, { withFileTypes: true });
+    const categoryDirs = categoryEntries
+      .filter((e) => e.isDirectory())
+      .map((e) => e.name);
+    for (const dir of categoryDirs) {
+      const dirPath = path.join(componentsRoot, dir);
       const files = await fs.readdir(dirPath);
       for (const file of files.filter((f) => f.endsWith(".json"))) {
         const raw = await fs.readFile(path.join(dirPath, file), "utf-8");
         const template = JSON.parse(raw) as ComponentTemplate;
         components[template.name] = template;
       }
-    } catch {
-      // Directory doesn't exist — ok
     }
+  } catch {
+    // No components directory — ok
   }
 
   // Inherit parent components if extends
