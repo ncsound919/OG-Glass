@@ -150,6 +150,11 @@ export function registerUIRoutes(app: Express): void {
         res.status(400).json({ error: "overrides object is required" });
         return;
       }
+      const state = getSessionState();
+      if (!state.activePreset) {
+        res.status(400).json({ error: "No active preset. Load a preset first." });
+        return;
+      }
       applyTokenOverrides(overrides);
       res.json({ ok: true });
     } catch (err) {
