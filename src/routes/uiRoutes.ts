@@ -296,6 +296,15 @@ export function registerUIRoutes(app: Express): void {
 
       res.json({ created: preset_id, path: preset_id, inheritsFrom: extendsId });
     } catch (err) {
+      // Clean up any partially-created preset directory to avoid leaving invalid state on disk
+      const presetDirForCleanup = path.join(PRESETS_DIR, (req.body as { preset_id?: string }).preset_id ?? "");
+      if (presetDirForCleanup && presetDirForCleanup !== PRESETS_DIR) {
+        try {
+          await fs.rm(presetDirForCleanup, { recursive: true, force: true });
+        } catch {
+          // best-effort cleanup; ignore secondary errors
+        }
+      }
       res.status(500).json({ error: String(err) });
     }
   });

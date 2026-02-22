@@ -928,18 +928,40 @@ export const DASHBOARD_HTML = /* html */ `<!DOCTYPE html>
       if (!obj) return;
       const sec = document.createElement('div');
       sec.className = 'token-section card mb-3';
-      sec.innerHTML = '<div class="token-section-title">' + esc(title) + '</div>';
+      const titleEl = document.createElement('div');
+      titleEl.className = 'token-section-title';
+      titleEl.textContent = title;
+      sec.appendChild(titleEl);
       const grid = document.createElement('div');
       grid.className = 'color-grid';
       for (const [k, v] of Object.entries(obj)) {
         const sw = document.createElement('div');
         sw.className = 'color-swatch';
-        sw.innerHTML =
-          '<div class="swatch-color" style="background:' + esc(String(v)) + '"></div>' +
-          '<div class="swatch-info">' +
-            '<div class="swatch-name">' + esc(k) + '</div>' +
-            '<div class="swatch-value">' + esc(String(v)) + '</div>' +
-          '</div>';
+
+        const swatchColor = document.createElement('div');
+        swatchColor.className = 'swatch-color';
+        const colorString = String(v);
+        if (
+          /^#([0-9a-fA-F]{3,8})$/.test(colorString) ||
+          /^rgba?\(/i.test(colorString) ||
+          /^hsla?\(/i.test(colorString)
+        ) {
+          swatchColor.style.background = colorString;
+        }
+
+        const info = document.createElement('div');
+        info.className = 'swatch-info';
+        const nameEl = document.createElement('div');
+        nameEl.className = 'swatch-name';
+        nameEl.textContent = k;
+        const valueEl = document.createElement('div');
+        valueEl.className = 'swatch-value';
+        valueEl.textContent = colorString;
+        info.appendChild(nameEl);
+        info.appendChild(valueEl);
+
+        sw.appendChild(swatchColor);
+        sw.appendChild(info);
         grid.appendChild(sw);
       }
       sec.appendChild(grid);
@@ -1161,7 +1183,8 @@ export const DASHBOARD_HTML = /* html */ `<!DOCTYPE html>
       const description = document.getElementById('scaffoldDesc').value.trim();
       const extendsVal  = document.getElementById('scaffoldExtends').value;
       const accentHex   = document.getElementById('scaffoldAccentHex').value.trim();
-      const accent_color = accentHex || undefined;
+      // Only send accent_color when it is a valid 6-digit hex value
+      const accent_color = /^#[0-9a-fA-F]{6}$/.test(accentHex) ? accentHex : undefined;
       const alertEl     = document.getElementById('scaffoldAlert');
 
       alertEl.className = 'alert';
