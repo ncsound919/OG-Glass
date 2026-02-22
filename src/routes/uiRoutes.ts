@@ -23,6 +23,7 @@ import {
 } from "../services/tokenResolver.js";
 import { PRESETS_DIR, MANIFEST_FILE, TOKENS_FILE } from "../constants.js";
 import type { DesignTokens, PresetManifest } from "../types/index.js";
+import { injectProps } from "../utils/templateUtils.js";
 
 // ── Rate limiter: 20 write requests per minute per IP ─────────────────────────
 const writeLimiter = rateLimit({
@@ -377,16 +378,21 @@ export function registerUIRoutes(app: Express): void {
         return;
       }
       const tokens = getEffectiveTokens();
+      // Validate variant exists when specified
+      if (variant !== undefined && !template.variants?.[variant]) {
+        const availableVariants = Object.keys(template.variants ?? {});
+        res.status(400).json({
+          error: `Variant '${variant}' not found in template '${template_name}'. Available variants: ${availableVariants.length ? availableVariants.join(", ") : "none"}`,
+        });
+        return;
+      }
       const activeTemplate =
         variant && template.variants?.[variant]
           ? { ...template, ...template.variants[variant] }
           : template;
       let code = resolveTokens(activeTemplate.template, tokens);
       const safeProps = typeof props === "object" && props !== null ? props : {};
-      for (const [key, value] of Object.entries(safeProps)) {
-        const placeholder = new RegExp(`\\{\\{prop:${key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\}\\}`, "g");
-        code = code.replace(placeholder, String(value));
-      }
+      code = injectProps(code, safeProps);
       res.json({
         code,
         templateUsed: template_name,

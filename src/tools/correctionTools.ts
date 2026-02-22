@@ -6,6 +6,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { requireActivePreset, getEffectiveTokens } from "../services/sessionState.js";
 import { correctComponent, validateComponent } from "../services/uiCorrector.js";
 import { resolveTokens, generateCSSVariables, generateTokenExport, generateTailwindExtend } from "../services/tokenResolver.js";
+import { escapeRegExp, injectProps } from "../utils/templateUtils.js";
 import {
   AutocorrectComponentSchema,
   ValidateUISchema,
@@ -280,21 +281,6 @@ Requires active preset.`,
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-function escapeRegExp(str: string): string {
-  // Escape characters that have special meaning in regular expressions
-  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function injectProps(template: string, props: Record<string, unknown>): string {
-  let result = template;
-  for (const [key, value] of Object.entries(props)) {
-    const escapedKey = escapeRegExp(key);
-    const placeholder = new RegExp(`\\{\\{prop:${escapedKey}\\}\\}`, "g");
-    result = result.replace(placeholder, String(value));
-  }
-  return result;
-}
 
 function flattenPaths(obj: Record<string, unknown>, prefix = ""): string[] {
   const paths: string[] = [];

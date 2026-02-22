@@ -1573,6 +1573,8 @@ export const DASHBOARD_HTML = /* html */ `<!DOCTYPE html>
     }
 
     function selectVisualizerComponent(name) {
+      let retries = 0;
+      const MAX_RETRIES = 50; // ~3 seconds at 60ms intervals
       function trySelect() {
         const sel = document.getElementById('vizComponentSelect');
         if (!sel) return;
@@ -1580,8 +1582,11 @@ export const DASHBOARD_HTML = /* html */ `<!DOCTYPE html>
         if (found) {
           sel.value = name;
           onVizComponentChange();
-        } else {
+        } else if (++retries < MAX_RETRIES) {
           setTimeout(trySelect, 60);
+        } else {
+          const codeEl = document.getElementById('vizCodeOutput');
+          if (codeEl) codeEl.textContent = 'Component "' + name + '" not found in the active preset.';
         }
       }
       const sel = document.getElementById('vizComponentSelect');
