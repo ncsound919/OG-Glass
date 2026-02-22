@@ -71,7 +71,10 @@ export const LoadPresetSchema = {
 };
 
 export const SwapTemplateSchema = {
-  preset_id: z.string().describe("The preset to switch to"),
+  preset_id: z
+    .string()
+    .regex(/^[a-z0-9-]+$/, "Must be kebab-case")
+    .describe("The preset to switch to"),
   preserve_overrides: z
     .boolean()
     .default(false)
