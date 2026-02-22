@@ -7,9 +7,22 @@ import type { DesignTokens } from "../types/index.js";
 
 // ── Token placeholder resolver ────────────────────────────────────────────────
 
-export function resolveTokens(template: string, tokens: DesignTokens): string {
+type TokenResolutionMode = "raw" | "css-var";
+
+export function resolveTokens(
+  template: string,
+  tokens: DesignTokens,
+  mode: TokenResolutionMode = "raw"
+): string {
   return template.replace(TOKEN_PATTERN, (_match, path: string) => {
-    const value = getNestedValue(tokens, path.trim());
+    const trimmedPath = path.trim();
+
+    if (mode === "css-var") {
+      const cssVarName = `--${trimmedPath.replace(/\./g, "-")}`;
+      return `var(${cssVarName})`;
+    }
+
+    const value = getNestedValue(tokens, trimmedPath);
     return value !== undefined ? String(value) : _match;
   });
 }
