@@ -1419,12 +1419,11 @@ export const DASHBOARD_HTML = /* html */ `<!DOCTYPE html>
             const data = await api('POST', '/api/components/generate', { template_name: btn.dataset.name });
             if (data.error) throw new Error(data.error);
             navigate('visualizer');
-            setTimeout(function() {
-              const codeEl = document.getElementById('vizCodeOutput');
-              if (codeEl) codeEl.textContent = data.code || '';
-              const sel = document.getElementById('vizComponentSelect');
-              if (sel) { sel.value = btn.dataset.name; onVizComponentChange(); }
-            }, 80);
+            await loadVisualizerSection();
+            const codeEl = document.getElementById('vizCodeOutput');
+            if (codeEl) codeEl.textContent = data.code || '';
+            const sel = document.getElementById('vizComponentSelect');
+            if (sel) { sel.value = btn.dataset.name; onVizComponentChange(); }
           } catch (err) {
             alert('Error: ' + String(err.message || err));
           } finally {
