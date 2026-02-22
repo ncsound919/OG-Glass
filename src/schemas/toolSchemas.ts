@@ -137,7 +137,7 @@ export const GenerateColorPaletteSchema = {
   include_shades: z
     .boolean()
     .default(true)
-    .describe("Include 9-step lightness shades (100–900) for the primary color"),
+    .describe("Include 10-step lightness shades (50–900) for the primary color"),
 };
 
 export const SuggestStyleSchema = {
