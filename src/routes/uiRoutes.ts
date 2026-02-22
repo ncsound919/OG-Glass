@@ -261,7 +261,7 @@ export function registerUIRoutes(app: Express): void {
       await fs.writeFile(path.join(presetDir, MANIFEST_FILE), JSON.stringify(manifest, null, 2));
       await fs.writeFile(path.join(presetDir, TOKENS_FILE),   JSON.stringify(tokenOverrides, null, 2));
 
-      res.json({ created: preset_id, path: presetDir, inheritsFrom: extendsId });
+      res.json({ created: preset_id, path: preset_id, inheritsFrom: extendsId });
     } catch (err) {
       res.status(500).json({ error: String(err) });
     }
