@@ -967,9 +967,6 @@ export const DASHBOARD_HTML = /* html */ `<!DOCTYPE html>
       if (section === 'palette')  initPaletteSection();
       if (section === 'tokens')   loadTokensSection();
       if (section === 'scaffold') loadScaffoldSection();
-      if (section === 'presets')     loadPresetsSection();
-      if (section === 'tokens')      loadTokensSection();
-      if (section === 'scaffold')    loadScaffoldSection();
       if (section === 'components')  loadComponentsSection();
       if (section === 'visualizer')  loadVisualizerSection();
     }
