@@ -114,14 +114,29 @@ export function registerUIRoutes(app: Express): void {
     try {
       const { format } = req.body as { format?: string };
       const tokens = getEffectiveTokens();
+      const requestedFormat = typeof format === "string" ? format : undefined;
+      const effectiveFormat =
+        requestedFormat === "css" ||
+        requestedFormat === "js" ||
+        requestedFormat === "tailwind"
+          ? requestedFormat
+          : "json";
       let output: string;
-      switch (format) {
-        case "css":      output = generateCSSVariables(tokens); break;
-        case "js":       output = generateTokenExport(tokens); break;
-        case "tailwind": output = generateTailwindExtend(tokens); break;
-        default:         output = JSON.stringify(tokens, null, 2);
+      switch (effectiveFormat) {
+        case "css":
+          output = generateCSSVariables(tokens);
+          break;
+        case "js":
+          output = generateTokenExport(tokens);
+          break;
+        case "tailwind":
+          output = generateTailwindExtend(tokens);
+          break;
+        case "json":
+        default:
+          output = JSON.stringify(tokens, null, 2);
       }
-      res.json({ format: format ?? "json", output });
+      res.json({ format: effectiveFormat, output });
     } catch (err) {
       res.status(400).json({ error: String(err) });
     }
