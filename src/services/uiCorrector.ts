@@ -388,7 +388,7 @@ function suggestColorToken(match: string, tokens: DesignTokens): string {
     return `background: var(--color-surface);`;
   }
   if (/border/.test(match)) {
-    return `border-color: var(--color-glass-border);`;
+    return `border-color: var(--color-border);`;
   }
   return `color: var(--color-text-primary);`;
 }
