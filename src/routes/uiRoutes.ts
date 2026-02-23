@@ -23,6 +23,7 @@ import {
 } from "../services/tokenResolver.js";
 import { PRESETS_DIR, MANIFEST_FILE, TOKENS_FILE } from "../constants.js";
 import type { DesignTokens, PresetManifest } from "../types/index.js";
+import { STYLE_CATEGORIES_EXPORT, generatePaletteExport } from "../tools/styleTools.js";
 import { injectProps } from "../utils/templateUtils.js";
 
 // ── Rate limiter: 20 write requests per minute per IP ─────────────────────────
@@ -308,6 +309,42 @@ export function registerUIRoutes(app: Express): void {
           // best-effort cleanup; ignore secondary errors
         }
       }
+      res.status(500).json({ error: String(err) });
+    }
+  });
+
+  // ── Style categories ────────────────────────────────────────────────────────
+  app.get("/api/styles", (_req: Request, res: Response): void => {
+    res.json({ categories: STYLE_CATEGORIES_EXPORT, total: STYLE_CATEGORIES_EXPORT.length });
+  });
+
+  // ── Color palette generator ─────────────────────────────────────────────────
+  app.post("/api/palette", writeLimiter, (req: Request, res: Response): void => {
+    try {
+      const { seed_color, harmony = "complementary", include_shades = true } = req.body as {
+        seed_color?: string;
+        harmony?: string;
+        include_shades?: boolean;
+      };
+
+      if (!seed_color || typeof seed_color !== "string") {
+        res.status(400).json({ error: "seed_color is required" });
+        return;
+      }
+      if (!/^#[0-9a-fA-F]{6}$/.test(seed_color)) {
+        res.status(400).json({ error: "seed_color must be a 6-digit hex color (e.g. #6366f1)" });
+        return;
+      }
+
+      const validHarmonies = ["complementary", "triadic", "analogous", "monochromatic", "split-complementary", "tetradic"];
+      if (!validHarmonies.includes(harmony)) {
+        res.status(400).json({ error: `harmony must be one of: ${validHarmonies.join(", ")}` });
+        return;
+      }
+
+      const palette = generatePaletteExport(seed_color, harmony, Boolean(include_shades));
+      res.json(palette);
+    } catch (err) {
       res.status(500).json({ error: String(err) });
     }
   });

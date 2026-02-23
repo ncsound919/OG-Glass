@@ -434,6 +434,123 @@ export const DASHBOARD_HTML = /* html */ `<!DOCTYPE html>
     .font-mono      { font-family: 'JetBrains Mono', monospace; }
     .font-semibold  { font-weight: 600; }
 
+    /* ── Style Gallery ───────────────────────────────────────────────────────── */
+    .style-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+
+    .style-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: all 250ms ease;
+      cursor: pointer;
+    }
+
+    .style-card:hover { transform: translateY(-2px); border-color: rgba(99,102,241,0.35); }
+    .style-card.loaded { border-color: rgba(99,102,241,0.6); }
+
+    .style-preview {
+      height: 90px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 12px;
+    }
+
+    .style-preview-chip {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .style-preview-bar {
+      flex: 1;
+      height: 6px;
+      border-radius: 3px;
+      opacity: 0.7;
+    }
+
+    .style-preview-text {
+      position: absolute;
+      bottom: 8px;
+      left: 12px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      opacity: 0.5;
+    }
+
+    .style-info { padding: 14px 16px; }
+    .style-name { font-size: 0.9375rem; font-weight: 600; margin-bottom: 4px; }
+    .style-desc { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 10px; line-height: 1.45; }
+
+    .principle-list { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 12px; }
+    .principle-tag {
+      padding: 2px 7px;
+      background: rgba(99,102,241,0.1);
+      border: 1px solid rgba(99,102,241,0.2);
+      border-radius: 4px;
+      font-size: 0.625rem;
+      color: var(--text-secondary);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ── Palette Generator ───────────────────────────────────────────────────── */
+    .palette-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 8px; margin-top: 16px; }
+
+    .palette-swatch {
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .palette-color { height: 56px; }
+
+    .palette-info {
+      padding: 6px 8px;
+      background: rgba(255,255,255,0.03);
+    }
+
+    .palette-name { font-size: 0.625rem; color: var(--text-secondary); text-transform: capitalize; margin-bottom: 2px; }
+    .palette-hex  { font-size: 0.625rem; color: var(--text-muted); font-family: monospace; }
+
+    .palette-shade-strip {
+      display: flex;
+      border-radius: 10px;
+      overflow: hidden;
+      height: 40px;
+      margin-top: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .palette-shade-block { flex: 1; position: relative; cursor: pointer; transition: flex 150ms ease; }
+    .palette-shade-block:hover { flex: 2; }
+    .palette-shade-label {
+      position: absolute;
+      bottom: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.5rem;
+      font-weight: 700;
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    .harmony-select-group {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .harmony-btn {
+      padding: 6px 12px;
+      border-radius: 8px;
     /* ── Category badge ──────────────────────────────────────────────────────── */
     .category-badge {
       display: inline-block;
@@ -480,6 +597,12 @@ export const DASHBOARD_HTML = /* html */ `<!DOCTYPE html>
       transition: all 150ms ease;
       font-family: inherit;
     }
+
+    .harmony-btn.active {
+      background: rgba(99,102,241,0.15);
+      border-color: rgba(99,102,241,0.35);
+      color: var(--accent-hover);
+    }
     .filter-btn.active { background: rgba(99,102,241,0.15); color: var(--accent-hover); border-color: rgba(99,102,241,0.3); }
     .filter-btn:hover  { background: rgba(255,255,255,0.05); color: var(--text); }
 
@@ -520,6 +643,12 @@ export const DASHBOARD_HTML = /* html */ `<!DOCTYPE html>
       <button class="nav-item" data-section="presets">
         <span class="nav-icon">🎨</span> Presets
       </button>
+      <button class="nav-item" data-section="gallery">
+        <span class="nav-icon">✦</span> Style Gallery
+      </button>
+      <button class="nav-item" data-section="palette">
+        <span class="nav-icon">⬡</span> Palette
+      </button>
       <button class="nav-item" data-section="tokens">
         <span class="nav-icon">🔵</span> Tokens
       </button>
@@ -543,7 +672,7 @@ export const DASHBOARD_HTML = /* html */ `<!DOCTYPE html>
       </button>
 
       <div class="sidebar-footer">
-        <div class="text-xs text-muted" style="padding:8px 12px;">UI Preset MCP v1.0.0</div>
+        <div class="text-xs text-muted" style="padding:8px 12px;">UI Preset MCP v1.1.0</div>
       </div>
     </nav>
 
@@ -578,6 +707,58 @@ export const DASHBOARD_HTML = /* html */ `<!DOCTYPE html>
           <div class="card-grid" id="presetGrid">
             <div class="spinner"></div>
           </div>
+        </div>
+
+        <!-- Style Gallery ──────────────────────────────────────────────────── -->
+        <div class="section" id="sect-gallery">
+          <div class="section-title">Style Gallery</div>
+          <div class="section-sub">Explore all available design styles and load them instantly. Each style embodies distinct aesthetic principles.</div>
+          <div class="style-grid" id="styleGrid">
+            <div class="spinner"></div>
+          </div>
+        </div>
+
+        <!-- Palette Generator ──────────────────────────────────────────────── -->
+        <div class="section" id="sect-palette">
+          <div class="section-title">Color Palette Generator</div>
+          <div class="section-sub">Generate harmonious color palettes using color theory. Apply the result directly to your active preset.</div>
+          <div class="card" style="max-width:640px;">
+            <div class="form-row mb-4">
+              <div class="form-group" style="margin-bottom:0">
+                <label>Seed Color</label>
+                <div class="flex gap-2 items-center">
+                  <input id="palettePicker" type="color" value="#6366f1"
+                    style="width:40px;height:36px;padding:2px;flex-shrink:0;cursor:pointer;border-radius:6px;">
+                  <input id="paletteHex" type="text" placeholder="#6366f1" style="flex:1;">
+                </div>
+              </div>
+              <div class="form-group" style="margin-bottom:0">
+                <label>Options</label>
+                <div class="flex gap-2 items-center" style="height:36px;">
+                  <label style="display:flex;align-items:center;gap:6px;margin:0;color:var(--text-secondary);font-size:0.8125rem;cursor:pointer;">
+                    <input type="checkbox" id="paletteShades" checked style="width:auto"> Shades
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div class="harmony-select-group" id="harmonyGroup">
+              <button class="harmony-btn active" data-harmony="complementary">Complementary</button>
+              <button class="harmony-btn" data-harmony="triadic">Triadic</button>
+              <button class="harmony-btn" data-harmony="analogous">Analogous</button>
+              <button class="harmony-btn" data-harmony="monochromatic">Monochromatic</button>
+              <button class="harmony-btn" data-harmony="split-complementary">Split Compl.</button>
+              <button class="harmony-btn" data-harmony="tetradic">Tetradic</button>
+            </div>
+            <div class="flex gap-2">
+              <button class="btn btn-primary" id="paletteGenBtn">
+                <span>⬡</span> Generate Palette
+              </button>
+              <button class="btn btn-ghost btn-sm" id="paletteApplyBtn" style="display:none">
+                Apply to Preset
+              </button>
+            </div>
+          </div>
+          <div id="paletteResult" class="mt-4"></div>
         </div>
 
         <!-- Tokens ─────────────────────────────────────────────────────────── -->
@@ -745,6 +926,15 @@ export const DASHBOARD_HTML = /* html */ `<!DOCTYPE html>
     let session        = { activePresetId: null, hasOverrides: false, overrideKeys: [] };
 
     const SECTION_TITLES = {
+      dashboard: 'Dashboard',
+      presets:   'Preset Library',
+      gallery:   'Style Gallery',
+      palette:   'Palette Generator',
+      tokens:    'Design Tokens',
+      validate:  'Validate Component',
+      correct:   'Autocorrect Component',
+      export:    'Export Tokens',
+      scaffold:  'Scaffold Preset',
       dashboard:   'Dashboard',
       presets:     'Preset Library',
       tokens:      'Design Tokens',
@@ -772,9 +962,11 @@ export const DASHBOARD_HTML = /* html */ `<!DOCTYPE html>
       document.getElementById('pageTitle').textContent = SECTION_TITLES[section] || section;
       currentSection = section;
 
-      if (section === 'presets')     loadPresetsSection();
-      if (section === 'tokens')      loadTokensSection();
-      if (section === 'scaffold')    loadScaffoldSection();
+      if (section === 'presets')  loadPresetsSection();
+      if (section === 'gallery')  loadStyleGallery();
+      if (section === 'palette')  initPaletteSection();
+      if (section === 'tokens')   loadTokensSection();
+      if (section === 'scaffold') loadScaffoldSection();
       if (section === 'components')  loadComponentsSection();
       if (section === 'visualizer')  loadVisualizerSection();
     }
@@ -982,10 +1174,282 @@ export const DASHBOARD_HTML = /* html */ `<!DOCTYPE html>
         if (result.error) throw new Error(result.error);
         await refreshSession();
         loadPresetsSection();
+        stylesLoaded = false;
         navigate('dashboard');
       } catch (err) {
         alert('Failed to load preset: ' + String(err.message || err));
       }
+    }
+
+    // ── Style Gallery ──────────────────────────────────────────────────────────
+    let stylesLoaded = false;
+
+    // Per-category visual preview config
+    const STYLE_VISUALS = {
+      glassmorphic: { bg: '#0a0d14', chip1: '#6366f1', chip2: '#0ea5e9', chip3: 'rgba(255,255,255,0.12)', text: 'rgba(255,255,255,0.6)' },
+      neumorphic:   { bg: '#e0e5ec', chip1: '#6c63ff', chip2: '#43b89c', chip3: 'rgba(255,255,255,0.9)',  text: 'rgba(50,60,90,0.5)' },
+      cyberpunk:    { bg: '#050510', chip1: '#00ff88', chip2: '#ff00aa', chip3: 'rgba(0,255,136,0.2)',    text: 'rgba(0,255,136,0.5)' },
+      brutalist:    { bg: '#ffffff', chip1: '#000000', chip2: '#ff0000', chip3: 'rgba(0,0,0,0.08)',       text: 'rgba(0,0,0,0.4)' },
+      pastel:       { bg: '#fef7ff', chip1: '#c084fc', chip2: '#f9a8d4', chip3: 'rgba(192,132,252,0.2)',  text: 'rgba(74,29,150,0.4)' },
+      aurora:       { bg: '#04081a', chip1: '#a78bfa', chip2: '#34d399', chip3: 'rgba(167,139,250,0.15)', text: 'rgba(196,181,253,0.5)' },
+    };
+
+    async function loadStyleGallery() {
+      if (stylesLoaded) return;
+      const grid = document.getElementById('styleGrid');
+      grid.innerHTML = '<div class="spinner"></div>';
+      try {
+        const data = await api('GET', '/api/styles');
+        const cats = data.categories || [];
+
+        // Also fetch all presets to match preset IDs
+        if (!allPresets.length) {
+          const pd = await api('GET', '/api/presets');
+          allPresets = pd.presets || [];
+        }
+
+        grid.innerHTML = '';
+
+        for (const cat of cats) {
+          const vis = STYLE_VISUALS[cat.id] || STYLE_VISUALS.glassmorphic;
+          const presetId = (cat.presets || [])[0] || '';
+
+          const card = document.createElement('div');
+          card.className = 'style-card' + (presetId === session.activePresetId ? ' loaded' : '');
+
+          // Visual preview strip
+          const preview = document.createElement('div');
+          preview.className = 'style-preview';
+          preview.style.background = vis.bg;
+
+          // Color chips
+          [vis.chip1, vis.chip2, vis.chip3].forEach(c => {
+            const chip = document.createElement('div');
+            chip.className = 'style-preview-chip';
+            chip.style.background = c;
+            if (cat.id === 'brutalist') chip.style.borderRadius = '0';
+            preview.appendChild(chip);
+          });
+
+          // Bar
+          const bar = document.createElement('div');
+          bar.className = 'style-preview-bar';
+          bar.style.background = 'linear-gradient(90deg, ' + vis.chip1 + ', ' + vis.chip2 + ')';
+          preview.appendChild(bar);
+
+          const txtLbl = document.createElement('div');
+          txtLbl.className = 'style-preview-text';
+          txtLbl.style.color = vis.text;
+          txtLbl.textContent = cat.name.toUpperCase();
+          preview.appendChild(txtLbl);
+
+          card.appendChild(preview);
+
+          // Info
+          const info = document.createElement('div');
+          info.className = 'style-info';
+          info.innerHTML =
+            '<div class="style-name">' + esc(cat.name) + '</div>' +
+            '<div class="style-desc">' + esc(cat.description) + '</div>' +
+            '<div class="principle-list">' +
+              (cat.principles || []).slice(0, 4).map(p => '<span class="principle-tag">' + esc(p) + '</span>').join('') +
+            '</div>' +
+            (presetId ? '<button class="btn btn-primary btn-sm load-style-btn" data-id="' + escAttr(presetId) + '">' +
+              (presetId === session.activePresetId ? '&#x2713; Loaded' : '&#x25BA; Load ' + esc(presetId)) +
+            '</button>' : '');
+          card.appendChild(info);
+          grid.appendChild(card);
+        }
+
+        grid.querySelectorAll('.load-style-btn').forEach(btn => {
+          btn.addEventListener('click', () => loadPreset(btn.dataset.id));
+        });
+
+        stylesLoaded = true;
+      } catch (err) {
+        grid.innerHTML = '<div class="alert alert-error show">Failed to load styles: ' + esc(String(err)) + '</div>';
+      }
+    }
+
+    // ── Palette Generator ──────────────────────────────────────────────────────
+    let currentHarmony  = 'complementary';
+    let lastPaletteData = null;
+
+    function initPaletteSection() {
+      const picker = document.getElementById('palettePicker');
+      const hex    = document.getElementById('paletteHex');
+      if (hex.dataset.initialized) return;
+      hex.dataset.initialized = '1';
+      picker.addEventListener('input', () => { hex.value = picker.value; });
+      hex.addEventListener('input', () => {
+        if (/^#[0-9a-fA-F]{6}$/.test(hex.value)) picker.value = hex.value;
+      });
+      hex.value = picker.value;
+    }
+
+    document.querySelectorAll('.harmony-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentHarmony = btn.dataset.harmony;
+        document.querySelectorAll('.harmony-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+
+    document.getElementById('paletteGenBtn').addEventListener('click', async () => {
+      const seedColor  = document.getElementById('paletteHex').value.trim() || document.getElementById('palettePicker').value;
+      const inclShades = document.getElementById('paletteShades').checked;
+      const resultEl   = document.getElementById('paletteResult');
+
+      if (!/^#[0-9a-fA-F]{6}$/.test(seedColor)) {
+        resultEl.innerHTML = '<div class="alert alert-error show">Enter a valid hex color (e.g. #6366f1).</div>';
+        return;
+      }
+      resultEl.innerHTML = '<div class="spinner"></div>';
+      try {
+        const data = await api('POST', '/api/palette', {
+          seed_color: seedColor,
+          harmony:    currentHarmony,
+          include_shades: inclShades,
+        });
+        lastPaletteData = data;
+        resultEl.innerHTML = '';
+        renderPaletteResult(resultEl, data);
+        document.getElementById('paletteApplyBtn').style.display = session.activePresetId ? '' : 'none';
+      } catch (err) {
+        resultEl.innerHTML = '<div class="alert alert-error show">Error: ' + esc(String(err)) + '</div>';
+      }
+    });
+
+    document.getElementById('paletteApplyBtn').addEventListener('click', async () => {
+      if (!lastPaletteData || !session.activePresetId) return;
+      const colors = lastPaletteData.colors || {};
+      const primary = colors.primary || lastPaletteData.seed;
+      const secondary = colors.complement || colors.secondary || colors.right || primary;
+      try {
+        await api('POST', '/api/tokens/overrides', {
+          overrides: {
+            colors: {
+              accent: {
+                primary,
+                primaryHover: lastPaletteData.semantic?.foreground || primary,
+                secondary,
+              }
+            }
+          }
+        });
+        await refreshSession();
+        const btn = document.getElementById('paletteApplyBtn');
+        const orig = btn.textContent;
+        btn.textContent = '✓ Applied!';
+        btn.classList.add('btn-success');
+        setTimeout(() => { btn.textContent = orig; btn.classList.remove('btn-success'); }, 2000);
+      } catch (err) {
+        alert('Failed to apply: ' + String(err.message || err));
+      }
+    });
+
+    function renderPaletteResult(container, data) {
+      const card = document.createElement('div');
+      card.className = 'card';
+
+      // Header
+      card.innerHTML =
+        '<div class="flex justify-between items-center mb-3">' +
+          '<div>' +
+            '<div class="font-semibold">' + esc(data.harmony || '') + ' palette</div>' +
+            '<div class="text-xs text-muted mt-1">Seed: <span class="font-mono text-accent">' + esc(data.seed || '') + '</span> &nbsp;·&nbsp; ' +
+              'HSL(' + esc(String(data.hsl?.h ?? '')) + '°, ' + esc(String(data.hsl?.s ?? '')) + '%, ' + esc(String(data.hsl?.l ?? '')) + '%)</div>' +
+          '</div>' +
+        '</div>';
+
+      // Harmony colors
+      if (data.colors && Object.keys(data.colors).length) {
+        const secTitle = document.createElement('div');
+        secTitle.className = 'token-section-title';
+        secTitle.textContent = 'Harmony Colors';
+        card.appendChild(secTitle);
+
+        const grid = document.createElement('div');
+        grid.className = 'palette-grid';
+        for (const [name, val] of Object.entries(data.colors)) {
+          grid.appendChild(makePaletteSwatch(name, String(val)));
+        }
+        card.appendChild(grid);
+      }
+
+      // Semantic colors
+      if (data.semantic && Object.keys(data.semantic).length) {
+        const secTitle = document.createElement('div');
+        secTitle.className = 'token-section-title mt-4';
+        secTitle.textContent = 'Semantic Aliases';
+        card.appendChild(secTitle);
+
+        const grid = document.createElement('div');
+        grid.className = 'palette-grid';
+        for (const [name, val] of Object.entries(data.semantic)) {
+          grid.appendChild(makePaletteSwatch(name, String(val)));
+        }
+        card.appendChild(grid);
+      }
+
+      // Shade strip
+      if (data.shades && Object.keys(data.shades).length) {
+        const secTitle = document.createElement('div');
+        secTitle.className = 'token-section-title mt-4';
+        secTitle.textContent = 'Shade Scale';
+        card.appendChild(secTitle);
+
+        const strip = document.createElement('div');
+        strip.className = 'palette-shade-strip';
+        for (const [label, val] of Object.entries(data.shades)) {
+          const block = document.createElement('div');
+          block.className = 'palette-shade-block';
+          block.style.background = String(val);
+          block.title = label + ': ' + String(val);
+          // Determine label text color based on lightness
+          const lMatch = String(val).match(/#([0-9a-fA-F]{6})/);
+          let textColor = '#fff';
+          if (lMatch) {
+            const r = parseInt(lMatch[1].slice(0,2),16);
+            const g = parseInt(lMatch[1].slice(2,4),16);
+            const b = parseInt(lMatch[1].slice(4,6),16);
+            const luminance = 0.2126*r + 0.7152*g + 0.0722*b;
+            textColor = luminance > 140 ? '#000' : '#fff';
+          }
+          const lbl = document.createElement('div');
+          lbl.className = 'palette-shade-label';
+          lbl.style.color = textColor;
+          lbl.textContent = label;
+          block.appendChild(lbl);
+          strip.appendChild(block);
+        }
+        card.appendChild(strip);
+      }
+
+      container.appendChild(card);
+    }
+
+    function makePaletteSwatch(name, val) {
+      const sw = document.createElement('div');
+      sw.className = 'palette-swatch';
+      const colorEl = document.createElement('div');
+      colorEl.className = 'palette-color';
+      if (/^#([0-9a-fA-F]{3,8})$/.test(val) || /^rgba?\\(/i.test(val) || /^hsla?\\(/i.test(val)) {
+        colorEl.style.background = val;
+      }
+      const info = document.createElement('div');
+      info.className = 'palette-info';
+      const nameEl = document.createElement('div');
+      nameEl.className = 'palette-name';
+      nameEl.textContent = name;
+      const hexEl = document.createElement('div');
+      hexEl.className = 'palette-hex';
+      hexEl.textContent = val;
+      info.appendChild(nameEl);
+      info.appendChild(hexEl);
+      sw.appendChild(colorEl);
+      sw.appendChild(info);
+      return sw;
     }
 
     // ── Tokens ─────────────────────────────────────────────────────────────────
@@ -1313,6 +1777,8 @@ export const DASHBOARD_HTML = /* html */ `<!DOCTYPE html>
         allPresets = [];
         // Reset scaffold extends options so it reloads on next visit
         document.getElementById('scaffoldExtends').innerHTML = '';
+        // Reset style gallery so it reloads fresh
+        stylesLoaded = false;
       } catch (err) {
         alertEl.className = 'alert alert-error show';
         alertEl.textContent = 'Error: ' + String(err.message || err);

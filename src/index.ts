@@ -8,6 +8,7 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import express from "express";
 import { registerPresetTools } from "./tools/presetTools.js";
 import { registerCorrectionTools } from "./tools/correctionTools.js";
+import { registerStyleTools } from "./tools/styleTools.js";
 import { registerUIRoutes } from "./routes/uiRoutes.js";
 import { startWatching } from "./services/fileWatcher.js";
 import { getActivePresetId } from "./services/sessionState.js";
@@ -24,6 +25,7 @@ const server = new McpServer({
 // Register all tool groups
 registerPresetTools(server);
 registerCorrectionTools(server);
+registerStyleTools(server);
 
 // ── File watcher (dev mode) ───────────────────────────────────────────────────
 

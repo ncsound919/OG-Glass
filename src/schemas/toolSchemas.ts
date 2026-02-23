@@ -122,3 +122,39 @@ export const ScaffoldPresetSchema = {
 };
 
 export const GetSessionStateSchema = {};
+
+// ── Style tool schemas ────────────────────────────────────────────────────────
+
+export const GenerateColorPaletteSchema = {
+  seed_color: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/, "Must be a 6-digit hex color (e.g. #6366f1)")
+    .describe("Seed hex color to generate the palette from"),
+  harmony: z
+    .enum(["complementary", "triadic", "analogous", "monochromatic", "split-complementary", "tetradic"])
+    .default("complementary")
+    .describe("Color harmony rule to apply"),
+  include_shades: z
+    .boolean()
+    .default(true)
+    .describe("Include 10-step lightness shades (50–900) for the primary color"),
+};
+
+export const SuggestStyleSchema = {
+  description: z
+    .string()
+    .min(3)
+    .max(500)
+    .describe("Natural-language description of the desired aesthetic or use-case (e.g. 'dark hacker terminal', 'friendly kids app')"),
+  output_format: z
+    .enum(["preset_id", "tokens", "full"])
+    .default("full")
+    .describe("What to return: just the preset ID, just token overrides, or both with reasoning"),
+};
+
+export const ListStyleCategoriesSchema = {
+  include_presets: z
+    .boolean()
+    .default(true)
+    .describe("Include the list of preset IDs for each category"),
+};

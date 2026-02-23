@@ -105,6 +105,8 @@ export interface PresetManifest {
   tags: string[];
   components: string[];       // list of component template filenames available
   layouts: string[];
+  styleCategory?: string;     // e.g. 'glassmorphic', 'neumorphic', 'brutalist', 'cyberpunk', 'pastel', 'aurora'
+  designPrinciples?: string[]; // key design principles this preset embodies
 }
 
 export interface Preset {
