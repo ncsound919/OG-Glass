@@ -301,7 +301,7 @@ export function registerStyleTools(server: McpServer): void {
 Args:
   - seed_color (string): 6-digit hex color (e.g. '#6366f1')
   - harmony ('complementary'|'triadic'|'analogous'|'monochromatic'|'split-complementary'|'tetradic'): Color harmony rule (default: 'complementary')
-  - include_shades (boolean): Include 9-step lightness shades 100–900 (default: true)
+  - include_shades (boolean): Include 10-step lightness shades 50–900 (default: true)
 
 Returns:
   - seed: Input color
@@ -309,7 +309,7 @@ Returns:
   - harmony: Harmony type used
   - colors: Named harmony colors (primary, complement, etc.)
   - semantic: foreground, background, muted, surface aliases
-  - shades: 100–900 shade scale (if include_shades is true)
+  - shades: 50–900 shade scale (if include_shades is true)
 
 Use the result to populate apply_token_overrides or scaffold_preset.`,
       inputSchema: GenerateColorPaletteSchema,

@@ -344,6 +344,11 @@ export function registerUIRoutes(app: Express): void {
 
       const palette = generatePaletteExport(seed_color, harmony, Boolean(include_shades));
       res.json(palette);
+    } catch (err) {
+      res.status(500).json({ error: String(err) });
+    }
+  });
+
   // ── List components ─────────────────────────────────────────────────────────
   app.get("/api/components", (_req: Request, res: Response): void => {
     try {

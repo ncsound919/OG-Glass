@@ -1174,6 +1174,7 @@ export const DASHBOARD_HTML = /* html */ `<!DOCTYPE html>
         if (result.error) throw new Error(result.error);
         await refreshSession();
         loadPresetsSection();
+        stylesLoaded = false;
         navigate('dashboard');
       } catch (err) {
         alert('Failed to load preset: ' + String(err.message || err));
