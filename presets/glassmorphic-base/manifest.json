@@ -4,6 +4,6 @@
   "description": "Core glassmorphic preset. All other presets inherit from this.",
   "version": "1.0.0",
   "tags": ["base", "glass", "dark"],
-  "components": ["Sidebar", "GlassCard", "OptionGroup", "NavGroup", "DataTable", "StatCard", "FormField", "Modal", "Toast"],
+  "components": ["Sidebar", "GlassCard", "OptionGroup", "NavGroup", "DataTable", "StatCard", "FormField", "Modal", "Toast", "Button", "Select", "Checkbox", "Switch", "Tabs", "Alert", "Skeleton", "Tooltip", "ProgressBar", "Badge", "EmptyState", "Avatar", "Pagination"],
   "layouts": ["DashboardLayout"]
 }

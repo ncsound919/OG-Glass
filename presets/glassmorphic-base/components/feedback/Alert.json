@@ -1,0 +1,16 @@
+{
+  "name": "Alert",
+  "category": "feedback",
+  "description": "Inline alert with success/error/info/warning tones and role=alert.",
+  "propsSchema": {
+    "message": { "type": "string", "required": true, "description": "Alert message" },
+    "tone": { "type": "string", "required": false, "description": "success|error|info|warning" }
+  },
+  "template": "import React from 'react';\n\nexport function Alert({ message, tone = 'info' }: { message: string; tone?: 'success' | 'error' | 'info' | 'warning' }) {\n  const color = tone === 'success' ? '{{token:colors.accent.success}}' : tone === 'error' ? '{{token:colors.accent.danger}}' : tone === 'warning' ? '{{token:colors.accent.warning}}' : '{{token:colors.accent.primary}}';\n  return (\n    <div role=\"alert\" style={{ border: `1px solid ${color}`, borderLeft: `4px solid ${color}`, borderRadius: '{{token:spacing.card.borderRadius}}', padding: '{{token:spacing.card.padding}}', background: '{{token:colors.base.surface}}', color: '{{token:colors.text.primary}}', fontSize: '{{token:typography.scale.sm}}' }}>\n      {message}\n    </div>\n  );\n}\n",
+  "variants": {
+    "dismissible": {
+      "description": "Alert with dismiss button",
+      "template": "import React from 'react';\n\nexport function Alert({ message }: { message: string }) {\n  const [hidden, setHidden] = React.useState(false);\n  if (hidden) return null;\n  return (\n    <div role=\"alert\" style={{ display: 'flex', justifyContent: 'space-between', border: '1px solid {{token:colors.accent.primary}}', borderRadius: '{{token:spacing.card.borderRadius}}', padding: '{{token:spacing.card.padding}}' }}>\n      <span>{message}</span>\n      <button aria-label=\"dismiss\" onClick={() => setHidden(true)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '{{token:colors.text.secondary}}' }}>×</button>\n    </div>\n  );\n}\n"
+    }
+  }
+}

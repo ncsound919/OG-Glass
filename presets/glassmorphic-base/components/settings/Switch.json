@@ -1,0 +1,16 @@
+{
+  "name": "Switch",
+  "category": "settings",
+  "description": "Accessible toggle switch with on/off states and disabled state.",
+  "propsSchema": {
+    "label": { "type": "string", "required": true, "description": "Switch label" },
+    "checked": { "type": "boolean", "required": false, "description": "Initial state" }
+  },
+  "template": "import React from 'react';\n\nexport function Switch({ label, checked = false }: { label: string; checked?: boolean }) {\n  const [on, setOn] = React.useState(checked);\n  return (\n    <button role=\"switch\" aria-checked={on} aria-label={label} onClick={() => setOn(!on)}\n      style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', border: '1px solid {{token:colors.base.border}}', background: '{{token:colors.base.surface}}', borderRadius: '999px', padding: '4px', cursor: 'pointer' }}>\n      <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: on ? '{{token:colors.accent.primary}}' : '{{token:colors.text.muted}}', transition: '{{token:animation.transition.default}}' }} />\n      <span style={{ fontSize: '{{token:typography.scale.sm}}', color: '{{token:colors.text.primary}}' }}>{label}</span>\n    </button>\n  );\n}\n",
+  "variants": {
+    "compact": {
+      "description": "Label-less compact switch",
+      "template": "import React from 'react';\n\nexport function Switch({ on }: { on: boolean }) {\n  return <button role=\"switch\" aria-checked={on} style={{ width: '36px', height: '20px', borderRadius: '999px', background: on ? '{{token:colors.accent.primary}}' : '{{token:colors.text.muted}}', border: 'none' }} />;\n}\n"
+    }
+  }
+}

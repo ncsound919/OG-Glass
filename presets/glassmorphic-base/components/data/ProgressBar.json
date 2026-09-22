@@ -1,0 +1,9 @@
+{
+  "name": "ProgressBar",
+  "category": "data",
+  "description": "Accessible progress bar with role=progressbar and deterministic value.",
+  "propsSchema": {
+    "value": { "type": "number", "required": true, "description": "0-100 progress" }
+  },
+  "template": "import React from 'react';\n\nexport function ProgressBar({ value }: { value: number }) {\n  const clamped = Math.max(0, Math.min(100, value));\n  return (\n    <div role=\"progressbar\" aria-valuenow={clamped} aria-valuemin={0} aria-valuemax={100}\n      style={{ width: '100%', height: '8px', borderRadius: '999px', background: '{{token:colors.glass.tint}}', overflow: 'hidden' }}>\n      <div style={{ width: `${clamped}%`, height: '100%', borderRadius: '999px', background: '{{token:colors.accent.primary}}', transition: '{{token:animation.transition.default}}' }} />\n    </div>\n  );\n}\n"
+}

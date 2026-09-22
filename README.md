@@ -46,6 +46,27 @@ subsystems) computed in-process — no LLM, and math-x's LLM-routed API is not c
 `refine_design` tool refines any preset; REST: `POST /api/design-brief` returns
 the same shape.
 
+### Design grade — the measurable "high-end" bar
+
+`grade_design` (tool + `GET /api/presets/:id/grade`) scores every preset S/A/B/C
+across eight categories: token completeness, WCAG contrast, 4pt spacing, type
+scale, elevation depth, motion system, **component depth** (breadth + variants +
+a11y coverage), and token validity. Deterministic — same preset, same grade.
+
+### Full UI-kit generation
+
+`generate_ui_kit` (tool + `GET /api/presets/:id/kit`) emits a complete, runnable
+**React + CSS-variables kit** from a preset (template or refined): a complete
+`tokens.css` (every token flattened, including nested spacing/typography/
+animation), every component + variant with tokens resolved to `var(--…)`, an
+`index.ts` barrel, and a README. Deterministic, zero LLM.
+
+The component library now ships 22 components with variants, states, and
+accessibility (aria/role/focus/disabled): Button, Select, Checkbox, Switch,
+Tabs, Alert, Skeleton, Tooltip, ProgressBar, Badge, EmptyState, Avatar,
+Pagination, DataTable, StatCard, FormField, Modal, Toast, Sidebar, GlassCard,
+OptionGroup, NavGroup.
+
 The quality gate is the prerequisite: **all 14 presets pass it** (muted text in
 the legacy dark presets was darkened to reach AA — the gate caught the failures).
 

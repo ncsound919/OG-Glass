@@ -1,0 +1,18 @@
+{
+  "name": "Button",
+  "category": "navigation",
+  "description": "Action button with primary/secondary/danger/ghost variants and disabled + loading states.",
+  "propsSchema": {
+    "label": { "type": "string", "required": true, "description": "Button label" },
+    "variant": { "type": "string", "required": false, "description": "primary|secondary|danger|ghost" },
+    "disabled": { "type": "boolean", "required": false, "description": "Disabled state" },
+    "loading": { "type": "boolean", "required": false, "description": "Loading state" }
+  },
+  "template": "import React from 'react';\n\nexport function Button({ label, variant = 'primary', disabled = false, loading = false, onClick }: {\n  label: string;\n  variant?: 'primary' | 'secondary' | 'danger' | 'ghost';\n  disabled?: boolean;\n  loading?: boolean;\n  onClick?: () => void;\n}) {\n  const base = {\n    primary: { background: '{{token:colors.accent.primary}}', color: '{{token:colors.text.inverse}}', border: '1px solid {{token:colors.accent.primary}}' },\n    secondary: { background: '{{token:colors.base.surface}}', color: '{{token:colors.text.primary}}', border: '1px solid {{token:colors.base.border}}' },\n    danger: { background: '{{token:colors.accent.danger}}', color: '{{token:colors.text.inverse}}', border: '1px solid {{token:colors.accent.danger}}' },\n    ghost: { background: 'transparent', color: '{{token:colors.accent.primary}}', border: '1px solid transparent' },\n  };\n  return (\n    <button\n      type=\"button\"\n      aria-disabled={disabled || loading}\n      disabled={disabled || loading}\n      onClick={onClick}\n      style={{\n        ...base[variant],\n        padding: '{{token:spacing.sidebar.padding}}',\n        borderRadius: '{{token:spacing.card.borderRadius}}',\n        fontSize: '{{token:typography.scale.sm}}',\n        fontWeight: 600,\n        cursor: disabled || loading ? 'not-allowed' : 'pointer',\n        opacity: disabled || loading ? 0.6 : 1,\n        transition: '{{token:animation.transition.default}}',\n      }}\n      onFocus={(e) => { e.currentTarget.style.outline = '2px solid {{token:colors.accent.primary}}'; e.currentTarget.style.outlineOffset = '2px'; }}\n      onBlur={(e) => { e.currentTarget.style.outline = 'none'; }}\n    >\n      {loading ? '…' : label}\n    </button>\n  );\n}\n",
+  "variants": {
+    "loading": {
+      "description": "Loading spinner state",
+      "template": "import React from 'react';\n\nexport function Button({ label }: { label: string }) {\n  return <button aria-busy=\"true\" disabled style={{ background: '{{token:colors.accent.primary}}', color: '{{token:colors.text.inverse}}', padding: '{{token:spacing.sidebar.padding}}', borderRadius: '{{token:spacing.card.borderRadius}}', opacity: 0.6 }}>{label}…</button>;\n}\n"
+    }
+  }
+}

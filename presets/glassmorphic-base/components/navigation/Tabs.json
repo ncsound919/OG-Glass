@@ -1,0 +1,10 @@
+{
+  "name": "Tabs",
+  "category": "navigation",
+  "description": "Accessible tab bar with role=tablist, active state, and keyboard-friendly buttons.",
+  "propsSchema": {
+    "tabs": { "type": "string[]", "required": true, "description": "Tab labels" },
+    "active": { "type": "string", "required": false, "description": "Active tab label" }
+  },
+  "template": "import React from 'react';\n\nexport function Tabs({ tabs, active }: { tabs: string[]; active?: string }) {\n  const [current, setCurrent] = React.useState(active ?? tabs[0]);\n  return (\n    <div role=\"tablist\" aria-label=\"Tabs\" style={{ display: 'flex', gap: '4px', borderBottom: '1px solid {{token:colors.base.border}}' }}>\n      {tabs.map((t) => (\n        <button key={t} role=\"tab\" aria-selected={t === current} onClick={() => setCurrent(t)}\n          style={{\n            padding: '{{token:spacing.sidebar.padding}}',\n            border: 'none',\n            background: 'transparent',\n            color: t === current ? '{{token:colors.accent.primary}}' : '{{token:colors.text.secondary}}',\n            borderBottom: t === current ? '2px solid {{token:colors.accent.primary}}' : '2px solid transparent',\n            fontWeight: t === current ? 600 : 400,\n            cursor: 'pointer',\n            fontSize: '{{token:typography.scale.sm}}',\n          }}>\n          {t}\n        </button>\n      ))}\n    </div>\n  );\n}\n"
+}

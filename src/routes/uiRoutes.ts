@@ -27,6 +27,8 @@ import { STYLE_CATEGORIES_EXPORT, generatePaletteExport } from "../tools/styleTo
 import { injectProps } from "../utils/templateUtils.js";
 import { validatePreset } from "../services/quality.js";
 import { exportDesignMarkdown } from "../services/designExport.js";
+import { gradeDesign } from "../services/grade.js";
+import { generateKit } from "../services/kitGenerator.js";
 import { refineDesign, DEFAULT_STRATEGY } from "../services/refine.js";
 import { decideDesignDirection, decideRefinement, designSettings, resolvePresetFor, STYLE_CRITERIA, PALETTE_CRITERIA, GRAPHICS_CRITERIA } from "../services/designDecisions.js";
 
@@ -504,7 +506,9 @@ export function registerUIRoutes(app: Express): void {
           strategy: refinement.strategy,
           math_report: r.report,
           refined_quality: validatePreset(refinedPreset),
+          refined_grade: gradeDesign(refinedPreset),
           refined_design_md: exportDesignMarkdown(refinedPreset),
+          kit: generateKit(refinedPreset),
         };
       }
       res.json({
@@ -515,12 +519,31 @@ export function registerUIRoutes(app: Express): void {
         preset_resolved: found ? preset?.manifest.id : null,
         available_presets: available,
         quality,
+        grade: preset ? gradeDesign(preset) : null,
         design_md,
         refined,
         note: "Template + refined (math-enhanced) outputs provided — use `refined` for the high-end build.",
       });
     } catch (err) {
       res.status(500).json({ error: String(err) });
+    }
+  });
+
+  app.get("/api/presets/:presetId/grade", async (req, res) => {
+    try {
+      const preset = await loadPreset(req.params.presetId);
+      res.json({ ok: true, preset_id: preset.manifest.id, grade: gradeDesign(preset) });
+    } catch {
+      res.status(404).json({ error: `preset '${req.params.presetId}' not found` });
+    }
+  });
+
+  app.get("/api/presets/:presetId/kit", async (req, res) => {
+    try {
+      const preset = await loadPreset(req.params.presetId);
+      res.json({ ok: true, preset_id: preset.manifest.id, grade: gradeDesign(preset), files: generateKit(preset) });
+    } catch {
+      res.status(404).json({ error: `preset '${req.params.presetId}' not found` });
     }
   });
 }

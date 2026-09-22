@@ -1,0 +1,10 @@
+{
+  "name": "Checkbox",
+  "category": "settings",
+  "description": "Accessible checkbox with label, disabled state, and focus-visible ring.",
+  "propsSchema": {
+    "label": { "type": "string", "required": true, "description": "Checkbox label" },
+    "checked": { "type": "boolean", "required": false, "description": "Initial checked state" }
+  },
+  "template": "import React from 'react';\n\nexport function Checkbox({ label, checked = false }: { label: string; checked?: boolean }) {\n  const [on, setOn] = React.useState(checked);\n  return (\n    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '{{token:typography.scale.sm}}', color: '{{token:colors.text.primary}}' }}>\n      <input type=\"checkbox\" checked={on} onChange={(e) => setOn(e.target.checked)} aria-label={label}\n        style={{ accentColor: '{{token:colors.accent.primary}}', width: '18px', height: '18px' }}\n        onFocus={(e) => { e.currentTarget.style.outline = '2px solid {{token:colors.accent.primary}}'; e.currentTarget.style.outlineOffset = '2px'; }}\n        onBlur={(e) => { e.currentTarget.style.outline = 'none'; }} />\n      {label}\n    </label>\n  );\n}\n"
+}

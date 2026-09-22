@@ -1,0 +1,14 @@
+{
+  "name": "Skeleton",
+  "category": "feedback",
+  "description": "Loading placeholder with pulsing animation and aria-busy.",
+  "propsSchema": {
+    "width": { "type": "string", "required": false, "description": "Width (default 100%)" },
+    "height": { "type": "string", "required": false, "description": "Height (default 16px)" }
+  },
+  "template": "import React from 'react';\n\nexport function Skeleton({ width = '100%', height = '16px' }: { width?: string; height?: string }) {\n  return (\n    <div aria-busy=\"true\" role=\"status\" style={{\n      width,\n      height,\n      borderRadius: '{{token:spacing.card.borderRadius}}',\n      background: '{{token:colors.glass.tint}}',\n      animation: 'og-pulse 1.2s ease-in-out infinite',\n    }} />\n  );\n}\n",
+  "variants": {
+    "text": { "description": "One-line text skeleton", "template": "import React from 'react';\n\nexport function Skeleton() {\n  return <div aria-busy=\"true\" style={{ height: '{{token:typography.scale.base}}', borderRadius: '4px', background: '{{token:colors.glass.tint}}' }} />;\n}\n" },
+    "circle": { "description": "Circular avatar skeleton", "template": "import React from 'react';\n\nexport function Skeleton() {\n  return <div aria-busy=\"true\" style={{ width: '48px', height: '48px', borderRadius: '50%', background: '{{token:colors.glass.tint}}' }} />;\n}\n" }
+  }
+}

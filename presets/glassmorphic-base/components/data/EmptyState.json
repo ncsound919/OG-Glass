@@ -1,0 +1,11 @@
+{
+  "name": "EmptyState",
+  "category": "data",
+  "description": "Empty/zero-data state with icon, title, description, and optional action.",
+  "propsSchema": {
+    "title": { "type": "string", "required": true, "description": "Empty state title" },
+    "description": { "type": "string", "required": false, "description": "Supporting text" },
+    "actionLabel": { "type": "string", "required": false, "description": "Action button label" }
+  },
+  "template": "import React from 'react';\n\nexport function EmptyState({ title, description, actionLabel }: { title: string; description?: string; actionLabel?: string }) {\n  return (\n    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', padding: '{{token:spacing.sidebar.width}} 0', textAlign: 'center' }}>\n      <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '{{token:colors.glass.tint}}', color: '{{token:colors.text.muted}}', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>∅</div>\n      <h3 style={{ margin: 0, color: '{{token:colors.text.primary}}', fontSize: '{{token:typography.scale.lg}}' }}>{title}</h3>\n      {description ? <p style={{ margin: 0, color: '{{token:colors.text.secondary}}', fontSize: '{{token:typography.scale.sm}}' }}>{description}</p> : null}\n      {actionLabel ? <button style={{ marginTop: '8px', padding: '{{token:spacing.sidebar.padding}}', borderRadius: '{{token:spacing.card.borderRadius}}', background: '{{token:colors.accent.primary}}', color: '{{token:colors.text.inverse}}', border: 'none', cursor: 'pointer' }}>{actionLabel}</button> : null}\n    </div>\n  );\n}\n"
+}

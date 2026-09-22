@@ -1,0 +1,13 @@
+{
+  "name": "Badge",
+  "category": "data",
+  "description": "Status badge with tone variants (success/info/warning/danger/neutral).",
+  "propsSchema": {
+    "label": { "type": "string", "required": true, "description": "Badge label" },
+    "tone": { "type": "string", "required": false, "description": "success|info|warning|danger|neutral" }
+  },
+  "template": "import React from 'react';\n\nexport function Badge({ label, tone = 'neutral' }: { label: string; tone?: 'success' | 'info' | 'warning' | 'danger' | 'neutral' }) {\n  const color = tone === 'success' ? '{{token:colors.accent.success}}' : tone === 'danger' ? '{{token:colors.accent.danger}}' : tone === 'warning' ? '{{token:colors.accent.warning}}' : tone === 'info' ? '{{token:colors.accent.primary}}' : '{{token:colors.text.secondary}}';\n  return (\n    <span role=\"status\" style={{\n      display: 'inline-flex', alignItems: 'center', gap: '6px',\n      padding: '2px 10px', borderRadius: '999px',\n      background: '{{token:colors.glass.tint}}',\n      border: `1px solid ${color}`,\n      color, fontSize: '{{token:typography.scale.xs}}', fontWeight: 600,\n    }}>\n      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: color }} />\n      {label}\n    </span>\n  );\n}\n",
+  "variants": {
+    "dot": { "description": "Dot-only badge", "template": "import React from 'react';\n\nexport function Badge({ tone }: { tone?: string }) {\n  return <span role=\"status\" style={{ width: '8px', height: '8px', borderRadius: '50%', background: tone === 'success' ? '{{token:colors.accent.success}}' : '{{token:colors.accent.danger}}' }} />;\n}\n" }
+  }
+}

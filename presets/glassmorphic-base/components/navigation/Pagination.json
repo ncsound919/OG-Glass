@@ -1,0 +1,10 @@
+{
+  "name": "Pagination",
+  "category": "navigation",
+  "description": "Accessible pagination with prev/next, page buttons, and aria-current.",
+  "propsSchema": {
+    "total": { "type": "number", "required": true, "description": "Total pages" },
+    "page": { "type": "number", "required": false, "description": "Current page (1-based)" }
+  },
+  "template": "import React from 'react';\n\nexport function Pagination({ total, page = 1 }: { total: number; page?: number }) {\n  const [current, setCurrent] = React.useState(page);\n  const pages = Array.from({ length: Math.min(total, 7) }, (_, i) => i + 1);\n  const go = (p: number) => { if (p >= 1 && p <= total) setCurrent(p); };\n  return (\n    <nav aria-label=\"Pagination\" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>\n      <button aria-label=\"Previous page\" disabled={current <= 1} onClick={() => go(current - 1)} style={pageBtn(true)}>‹</button>\n      {pages.map((p) => (\n        <button key={p} aria-current={p === current ? 'page' : undefined} aria-label={`Page ${p}`} onClick={() => go(p)}\n          style={{ ...pageBtn(p === current), background: p === current ? '{{token:colors.accent.primary}}' : '{{token:colors.base.surface}}', color: p === current ? '{{token:colors.text.inverse}}' : '{{token:colors.text.primary}}', border: '1px solid {{token:colors.base.border}}' }}>{p}</button>\n      ))}\n      <button aria-label=\"Next page\" disabled={current >= total} onClick={() => go(current + 1)} style={pageBtn(true)}>›</button>\n    </nav>\n  );\n  function pageBtn(active: boolean) {\n    return { minWidth: '32px', height: '32px', borderRadius: '{{token:spacing.card.borderRadius}}', border: 'none', cursor: active ? 'pointer' : 'not-allowed', opacity: active ? 1 : 0.5, fontSize: '{{token:typography.scale.sm}}' };\n  }\n}\n"
+}

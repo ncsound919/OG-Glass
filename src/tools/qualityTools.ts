@@ -14,6 +14,8 @@ import { loadPreset, listAvailablePresets } from "../services/presetLoader.js";
 import { validatePreset } from "../services/quality.js";
 import { exportDesignMarkdown } from "../services/designExport.js";
 import { refineDesign, DEFAULT_STRATEGY } from "../services/refine.js";
+import { gradeDesign } from "../services/grade.js";
+import { generateKit } from "../services/kitGenerator.js";
 import { decideDesignDirection, decideRefinement, designSettings, resolvePresetFor, STYLE_CRITERIA, PALETTE_CRITERIA, GRAPHICS_CRITERIA } from "../services/designDecisions.js";
 import { ValidatePresetSchema, DesignBriefSchema, DecideDirectionSchema, RefineDesignSchema } from "../schemas/toolSchemas.js";
 import type { Preset } from "../types/index.js";
@@ -29,12 +31,15 @@ function refinePresetResult(preset: Preset, _goal: string, overrides: Record<str
     tokens: refined.tokens,
   };
   const quality = validatePreset(refinedPreset);
+  const grade = gradeDesign(refinedPreset);
   return {
     strategy,
     math_report: refined.report,
     refined_tokens: refined.tokens,
     refined_quality: quality,
+    refined_grade: grade,
     refined_design_md: exportDesignMarkdown(refinedPreset),
+    kit: generateKit(refinedPreset),
   };
 }
 
@@ -182,11 +187,13 @@ Adheres each time = JEV decision + quality gate passed + DESIGN.md emitted.`,
                       strategy: refined.strategy,
                       math_report: refined.math_report,
                       refined_quality: refined.refined_quality,
+                      refined_grade: refined.refined_grade,
                       refined_design_md: refined.refined_design_md,
+                      kit: refined.kit,
                     }
                   : null,
                 note: found
-                  ? "Template + refined (math-enhanced) outputs are both provided — use `refined` for the high-end build, template for the baseline."
+                  ? "Template + refined (math-enhanced, graded) outputs are both provided — use `refined` for the high-end build, template for the baseline."
                   : `No preset on disk for '${direction.chosen.style}'; available: ${available.join(", ")}`,
               },
               null,
@@ -216,6 +223,53 @@ report of every change, the refined quality-gate result, and the refined DESIGN.
         return { content: [{ type: "text", text: JSON.stringify(refined, null, 2) }] };
       } catch (err) {
         return { content: [{ type: "text", text: `Preset '${presetId}' not found: ${(err as Error).message}` }], isError: true };
+      }
+    },
+  );
+
+  server.registerTool(
+    "grade_design",
+    {
+      title: "Grade Design",
+      description: `Deterministic S/A/B/C design-grade for a preset across token completeness,
+WCAG contrast, 4pt spacing, type scale, elevation depth, motion system, component
+depth, and a11y coverage. This is the measurable "high-end" bar.`,
+      inputSchema: ValidatePresetSchema,
+    },
+    async ({ preset_id }) => {
+      try {
+        const preset = await loadPreset(preset_id as string);
+        return { content: [{ type: "text", text: JSON.stringify(gradeDesign(preset), null, 2) }] };
+      } catch (err) {
+        return { content: [{ type: "text", text: `Preset '${preset_id}' not found: ${(err as Error).message}` }], isError: true };
+      }
+    },
+  );
+
+  server.registerTool(
+    "generate_ui_kit",
+    {
+      title: "Generate UI Kit",
+      description: `Generates a complete React + CSS-variables UI kit from a preset (template or
+refined): tokens.css, every component (+variants) with tokens resolved to CSS
+variables, an index barrel, and a README. Deterministic, zero LLM.`,
+      inputSchema: ValidatePresetSchema,
+    },
+    async ({ preset_id }) => {
+      try {
+        const preset = await loadPreset(preset_id as string);
+        const kit = generateKit(preset);
+        const grade = gradeDesign(preset);
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify({ ok: true, preset_id: preset.manifest.id, grade, files: kit }, null, 2),
+            },
+          ],
+        };
+      } catch (err) {
+        return { content: [{ type: "text", text: `Preset '${preset_id}' not found: ${(err as Error).message}` }], isError: true };
       }
     },
   );

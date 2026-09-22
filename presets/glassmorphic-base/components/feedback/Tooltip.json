@@ -1,0 +1,10 @@
+{
+  "name": "Tooltip",
+  "category": "feedback",
+  "description": "Accessible tooltip with role=tooltip, elevation, and hover/focus triggers.",
+  "propsSchema": {
+    "text": { "type": "string", "required": true, "description": "Tooltip text" },
+    "children": { "type": "ReactNode", "required": true, "description": "Trigger element" }
+  },
+  "template": "import React from 'react';\n\nexport function Tooltip({ text, children }: { text: string; children: React.ReactNode }) {\n  const [open, setOpen] = React.useState(false);\n  return (\n    <span style={{ position: 'relative', display: 'inline-block' }}\n      onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}\n      onFocus={() => setOpen(true)} onBlur={() => setOpen(false)}>\n      {children}\n      {open ? (\n        <span role=\"tooltip\" style={{\n          position: 'absolute', bottom: 'calc(100% + 6px)', left: '50%', transform: 'translateX(-50%)',\n          background: '{{token:colors.text.primary}}', color: '{{token:colors.text.inverse}}',\n          borderRadius: '6px', padding: '6px 10px', fontSize: '{{token:typography.scale.xs}}',\n          whiteSpace: 'nowrap', zIndex: 10,\n          boxShadow: '0 8px 32px {{token:colors.glass.shadow}}',\n        }}>{text}</span>\n      ) : null}\n    </span>\n  );\n}\n"
+}

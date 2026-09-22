@@ -142,3 +142,57 @@ test('designSettings reads env', () => {
   assert.equal(designSettings({ OG_GLASS_JEV_URL: 'http://x:1/' }).baseUrl, 'http://x:1');
   assert.equal(designSettings({ OG_GLASS_JEV_ENABLED: '0' }).enabled, false);
 });
+
+// ---- grade + kit -----------------------------------------------------------
+
+const { gradeDesign } = await import(pathToFileURL(join(dist, 'services', 'grade.js')).href);
+const { generateKit } = await import(pathToFileURL(join(dist, 'services', 'kitGenerator.js')).href);
+
+test('gradeDesign: full preset grades S, category scores present', async () => {
+  const preset = await loadPreset('glassmorphic-base');
+  const g = gradeDesign(preset);
+  assert.ok(['S', 'A', 'B', 'C', 'F'].includes(g.letter));
+  assert.ok(g.score >= 60, `score ${g.score}`);
+  for (const key of ['tokens', 'contrast', 'spacing', 'type', 'elevation', 'motion', 'components', 'validity']) {
+    assert.ok(g.categories[key], key);
+    assert.ok(g.categories[key].score >= 0 && g.categories[key].score <= g.categories[key].max);
+  }
+  assert.ok(g.categories.components.score >= 10, `component depth ${g.categories.components.score}`);
+});
+
+test('gradeDesign: component depth + a11y coverage raises the score', async () => {
+  const flat = await loadPreset('style-flat-corporate');
+  const g = gradeDesign(flat);
+  assert.equal(g.categories.components.score >= 10, true);
+  // the component library carries a11y markers (aria/role/focus/disabled)
+  const comps = Object.values(flat.components);
+  const a11y = comps.filter((c) => /aria-|role=|\bfocus|disabled|aria-live/i.test(c.template)).length;
+  assert.ok(a11y / comps.length >= 0.5, `a11y coverage ${(a11y / comps.length).toFixed(2)}`);
+});
+
+test('generateKit: full React + CSS-var kit, deterministic, no hardcoded colors', async () => {
+  const preset = await loadPreset('glassmorphic-base');
+  const kit = generateKit(preset);
+  const paths = new Set(kit.map((f) => f.path));
+  assert.ok(paths.has('tokens.css'));
+  assert.ok(paths.has('index.ts'));
+  assert.ok(paths.has('README.md'));
+  const components = kit.filter((f) => f.path.startsWith('components/'));
+  assert.ok(components.length >= 20, `${components.length} component files`);
+
+  const tokensCss = kit.find((f) => f.path === 'tokens.css').content;
+  assert.ok(tokensCss.includes('--color-accent-primary'));
+  // component templates must have no unresolved {{token:}} and their var names
+  // must exist in tokens.css
+  for (const f of components) {
+    assert.ok(!/\{\{token:/.test(f.content), `${f.path} unresolved token`);
+    const vars = [...f.content.matchAll(/var\((--[\w-]+)\)/g)].map((m) => m[1]);
+    for (const v of vars) {
+      assert.ok(tokensCss.includes(`${v}:`), `${f.path} references ${v} not in tokens.css`);
+    }
+  }
+  // deterministic
+  const again = generateKit(await loadPreset('glassmorphic-base'));
+  assert.equal(kit.length, again.length);
+  assert.equal(kit[0].content, again[0].content);
+});
