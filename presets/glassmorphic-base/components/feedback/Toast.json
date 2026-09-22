@@ -1,0 +1,10 @@
+{
+  "name": "Toast",
+  "category": "feedback",
+  "description": "Transient toast notification with success/error tones.",
+  "propsSchema": {
+    "message": { "type": "string", "required": true, "description": "Toast message" },
+    "tone": { "type": "string", "required": false, "description": "success | error | info" }
+  },
+  "template": "import React from 'react';\n\ninterface ToastProps {\n  message: string;\n  tone?: 'success' | 'error' | 'info';\n}\n\nexport function Toast({ message, tone = 'info' }: ToastProps) {\n  const color = tone === 'success'\n    ? '{{token:colors.accent.success}}'\n    : tone === 'error'\n    ? '{{token:colors.accent.danger}}'\n    : '{{token:colors.accent.primary}}';\n  return (\n    <div style={{\n      background: '{{token:colors.base.surface}}',\n      border: `1px solid ${color}`,\n      borderRadius: '{{token:spacing.card.borderRadius}}',\n      padding: '{{token:spacing.card.padding}}',\n      color: '{{token:colors.text.primary}}',\n      boxShadow: '0 8px 32px {{token:colors.glass.shadow}}',\n      maxWidth: '320px',\n    }}>\n      <span style={{ color }}>●</span> {message}\n    </div>\n  );\n}\n"
+}

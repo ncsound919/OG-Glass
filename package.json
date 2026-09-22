@@ -1,13 +1,14 @@
 {
   "name": "ui-preset-mcp-server",
-  "version": "1.0.0",
-  "description": "MCP server for glassmorphic React UI preset system",
+  "version": "1.1.0",
+  "description": "MCP server for deterministic UI preset system — JEV design decisions, quality gates, DESIGN.md export, multi-style presets",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/index.ts",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "test": "npm run build && node --test"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.11.0",

@@ -1,0 +1,16 @@
+{
+  "id": "style-healthcare",
+  "name": "Healthcare Clean",
+  "description": "Clean white/teal clinical style — maximum legibility, calm, trustworthy.",
+  "version": "1.0.0",
+  "extends": "glassmorphic-base",
+  "tags": ["healthcare", "clinical", "clean", "light", "trust"],
+  "styleCategory": "healthcare",
+  "components": [],
+  "layouts": [],
+  "designPrinciples": [
+    "Maximum text legibility; high-contrast teal on white.",
+    "Calm, spacious, minimal decoration.",
+    "Accessibility-first: WCAG AA on every text token."
+  ]
+}

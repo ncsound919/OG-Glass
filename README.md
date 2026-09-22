@@ -1,7 +1,44 @@
 
 # UI Preset MCP Server
 
-MCP server for auto-configuring React UI against a swappable design preset system. Integrates with your Monaco IDE to enforce design uniformity across all business builds. Supports glassmorphism, neumorphism, neon cyberpunk, brutalism, soft pastels, aurora gradients, and more — a baby Canva for frontend development.
+MCP server for auto-configuring React UI against a swappable design preset system. Integrates with your Monaco IDE to enforce design uniformity across all business builds. Supports glassmorphism, neumorphism, neon cyberpunk, brutalism, soft pastels, aurora gradients, plus new flat/material/healthcare/editorial/minimal styles — a baby Canva for frontend development.
+
+## Design precision + JEV decision process (v1.1)
+
+Every project gets a **deep, per-project design decision** grounded in awesome-design
+principles and current frontend practice:
+
+| Tool | What it does |
+| --- | --- |
+| `decide_design_direction` | JEV decides style, palette strategy, graphics treatment, precision level, and dark/light over bounded questions whose criteria encode awesome-design + current-practice standards. Offline JEV falls back to a deterministic keyword classifier with the real error reported (never a fabricated decision). |
+| `design_brief` | The full process: JEV direction → resolve preset on disk → run the **deterministic quality gate** → export a **DESIGN.md** contract. "Adheres each time" = decision + `quality.passed=true` + DESIGN.md emitted. |
+| `validate_preset` | Deterministic precision gate: valid colors, WCAG AA text contrast vs base bg, spacing on the 4pt grid, strictly increasing type scale, zero unresolved `{{token:}}` refs. Returns score 0-100 + every finding. |
+| `list_preset_quality` | Quality score for every preset, sorted. Use it to pick the most precise preset for a project. |
+| `export_design_markdown` | Exports a preset's tokens as a Stitch/awesome-design-md `DESIGN.md` (palette, typography, spacing, depth, components, do's/don'ts, agent prompt guide). Deterministic. |
+
+The quality gate is the prerequisite: **all 14 presets pass it** (muted text in
+the legacy dark presets was darkened to reach AA — the gate caught the failures).
+
+### New style presets (beyond glassmorphism)
+
+`style-flat-corporate`, `style-material`, `style-healthcare`, `style-editorial`,
+`style-minimal-light` — each extends `glassmorphic-base`, overrides tokens
+(palette, type, radius, depth), and inherits components. New base components:
+`DataTable`, `StatCard`, `FormField`, `Modal`, `Toast`.
+
+### Env
+
+```
+OG_GLASS_JEV_URL      # default http://127.0.0.1:8080 (System One)
+OG_GLASS_JEV_ENABLED  # set 0 to force the offline classifier
+OG_GLASS_JEV_TIMEOUT  # seconds per request
+```
+
+### Tests
+
+```bash
+npm test    # build + node --test (11 tests: color math, quality gate, DESIGN.md, JEV)
+```
 
 ## Architecture
 

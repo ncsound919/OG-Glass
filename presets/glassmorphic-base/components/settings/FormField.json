@@ -1,0 +1,11 @@
+{
+  "name": "FormField",
+  "category": "settings",
+  "description": "Labeled input field with error state and tokenized focus ring.",
+  "propsSchema": {
+    "label": { "type": "string", "required": true, "description": "Field label" },
+    "type": { "type": "string", "required": false, "description": "Input type" },
+    "error": { "type": "string", "required": false, "description": "Error message" }
+  },
+  "template": "import React from 'react';\n\ninterface FormFieldProps {\n  label: string;\n  type?: string;\n  error?: string;\n}\n\nexport function FormField({ label, type = 'text', error }: FormFieldProps) {\n  return (\n    <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '{{token:typography.scale.sm}}' }}>\n      <span style={{ color: '{{token:colors.text.secondary}}' }}>{label}</span>\n      <input\n        type={type}\n        style={{\n          border: `1px solid ${error ? '{{token:colors.accent.danger}}' : '{{token:colors.base.border}}'}`,\n          borderRadius: '{{token:spacing.card.borderRadius}}',\n          padding: '{{token:spacing.sidebar.padding}}',\n          color: '{{token:colors.text.primary}}',\n          background: '{{token:colors.base.surface}}',\n        }}\n      />\n      {error ? <span style={{ color: '{{token:colors.accent.danger}}', fontSize: '{{token:typography.scale.xs}}' }}>{error}</span> : null}\n    </label>\n  );\n}\n"
+}

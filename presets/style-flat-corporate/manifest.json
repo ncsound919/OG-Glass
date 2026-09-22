@@ -1,0 +1,16 @@
+{
+  "id": "style-flat-corporate",
+  "name": "Flat Corporate",
+  "description": "Flat, light, restrained B2B dashboard style — crisp borders, blue accent, minimal depth.",
+  "version": "1.0.0",
+  "extends": "glassmorphic-base",
+  "tags": ["flat", "light", "corporate", "b2b", "dashboard"],
+  "styleCategory": "flat",
+  "components": [],
+  "layouts": [],
+  "designPrinciples": [
+    "Flat surfaces with crisp borders — no backdrop blur.",
+    "Restrained single accent; everything else neutral.",
+    "High text legibility (WCAG AA) on light surfaces."
+  ]
+}

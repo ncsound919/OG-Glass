@@ -158,3 +158,36 @@ export const ListStyleCategoriesSchema = {
     .default(true)
     .describe("Include the list of preset IDs for each category"),
 };
+
+// ---------------------------------------------------------------------------
+// Design quality + JEV decision schemas
+// ---------------------------------------------------------------------------
+
+export const ValidatePresetSchema = {
+  preset_id: z.string().describe("Preset ID to validate, e.g. 'glassmorphic-base'"),
+};
+
+export const DecideDirectionSchema = {
+  goal: z.string().max(2000).describe("Project description to direct the design decision"),
+};
+
+export const DesignBriefSchema = {
+  goal: z.string().max(2000).describe("Project description to direct the design decision"),
+  style: z
+    .string()
+    .optional()
+    .describe("Force a style preset id (overrides JEV)"),
+  palette: z
+    .string()
+    .optional()
+    .describe("Force a palette strategy (overrides JEV)"),
+  graphics: z
+    .string()
+    .optional()
+    .describe("Force a graphics treatment (overrides JEV)"),
+  precision: z
+    .boolean()
+    .optional()
+    .describe("Force strict precision (WCAG AA + 4pt grid)"),
+  dark: z.boolean().optional().describe("Force dark theme"),
+};

@@ -1,0 +1,16 @@
+{
+  "id": "style-material",
+  "name": "Material 3",
+  "description": "Material Design 3 tonal surfaces — elevation via shadows, purple primary, rounded cards.",
+  "version": "1.0.0",
+  "extends": "glassmorphic-base",
+  "tags": ["material", "tonal", "android", "elevation", "light"],
+  "styleCategory": "material",
+  "components": [],
+  "layouts": [],
+  "designPrinciples": [
+    "Tonal surfaces with elevation expressed through shadows, not blur.",
+    "Primary color leads; surfaces share a tinted background.",
+    "Generous 16px radius on elevated cards."
+  ]
+}

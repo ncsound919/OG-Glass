@@ -1,0 +1,16 @@
+{
+  "id": "style-minimal-light",
+  "name": "Minimal Light",
+  "description": "Grayscale minimal — quiet, precise, generous whitespace, sharp thin borders.",
+  "version": "1.0.0",
+  "extends": "glassmorphic-base",
+  "tags": ["minimal", "light", "grayscale", "precise"],
+  "styleCategory": "minimal",
+  "components": [],
+  "layouts": [],
+  "designPrinciples": [
+    "Grayscale first; a single black accent.",
+    "Generous whitespace, thin borders, no depth.",
+    "Precision: 4pt grid, consistent 6px radius."
+  ]
+}

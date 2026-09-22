@@ -1,0 +1,16 @@
+{
+  "id": "style-editorial",
+  "name": "Editorial Long-Form",
+  "description": "Magazine-style serif typography on cream — black/cream, sharp edges, spacious.",
+  "version": "1.0.0",
+  "extends": "glassmorphic-base",
+  "tags": ["editorial", "serif", "long-form", "cream", "magazine"],
+  "styleCategory": "editorial",
+  "components": [],
+  "layouts": [],
+  "designPrinciples": [
+    "Type-driven: serif display, generous measure, large scale.",
+    "Black on cream with one warm accent.",
+    "Sharp radii — no floating glass."
+  ]
+}

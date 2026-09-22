@@ -1,0 +1,17 @@
+{
+  "name": "DataTable",
+  "category": "data",
+  "description": "Sortable data table with tokenized borders, header fills, and row hover.",
+  "propsSchema": {
+    "columns": { "type": "string[]", "required": true, "description": "Column headers" },
+    "rows": { "type": "unknown[][]", "required": true, "description": "Row cells" },
+    "className": { "type": "string", "required": false, "description": "Extra classes" }
+  },
+  "template": "import React from 'react';\n\ninterface DataTableProps {\n  columns: string[];\n  rows: unknown[][];\n  className?: string;\n}\n\nexport function DataTable({ columns, rows, className }: DataTableProps) {\n  return (\n    <div style={{ border: '1px solid {{token:colors.base.border}}', borderRadius: '{{token:spacing.card.borderRadius}}', overflow: 'auto', background: '{{token:colors.base.surface}}' }} className={className}>\n      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '{{token:typography.scale.sm}}' }}>\n        <thead>\n          <tr style={{ background: '{{token:colors.glass.tint}}' }}>\n            {columns.map((c) => (\n              <th key={c} style={{ textAlign: 'left', padding: '{{token:spacing.card.gap}}', color: '{{token:colors.text.secondary}}', fontWeight: 600 }}>{c}</th>\n            ))}\n          </tr>\n        </thead>\n        <tbody>\n          {rows.map((r, i) => (\n            <tr key={i} style={{ borderTop: '1px solid {{token:colors.base.border}}', color: '{{token:colors.text.primary}}' }}>\n              {r.map((cell, j) => (\n                <td key={j} style={{ padding: '{{token:spacing.card.gap}}' }}>{String(cell)}</td>\n              ))}\n            </tr>\n          ))}\n        </tbody>\n      </table>\n    </div>\n  );\n}\n",
+  "variants": {
+    "dense": {
+      "description": "Compact rows for dense dashboards",
+      "template": "import React from 'react';\n\nexport function DataTable({ columns, rows }: { columns: string[]; rows: unknown[][] }) {\n  return (\n    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '{{token:typography.scale.xs}}' }}>\n      <thead>\n        <tr style={{ background: '{{token:colors.glass.tint}}' }}>\n          {columns.map((c) => <th key={c} style={{ padding: '4px 8px', color: '{{token:colors.text.secondary}}' }}>{c}</th>)}\n        </tr>\n      </thead>\n      <tbody>\n        {rows.map((r, i) => (\n          <tr key={i} style={{ borderTop: '1px solid {{token:colors.base.border}}' }}>\n            {r.map((cell, j) => <td key={j} style={{ padding: '4px 8px', color: '{{token:colors.text.primary}}' }}>{String(cell)}</td>)}\n          </tr>\n        ))}\n      </tbody>\n    </table>\n  );\n}\n"
+    }
+  }
+}

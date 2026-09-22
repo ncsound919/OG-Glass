@@ -1,6 +1,6 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// index.ts  –  UI Preset MCP Server entry point
-// ─────────────────────────────────────────────────────────────────────────────
+﻿// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// index.ts  â€“  UI Preset MCP Server entry point
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
@@ -9,29 +9,31 @@ import express from "express";
 import { registerPresetTools } from "./tools/presetTools.js";
 import { registerCorrectionTools } from "./tools/correctionTools.js";
 import { registerStyleTools } from "./tools/styleTools.js";
+import { registerQualityTools } from "./tools/qualityTools.js";
 import { registerUIRoutes } from "./routes/uiRoutes.js";
 import { startWatching } from "./services/fileWatcher.js";
 import { getActivePresetId } from "./services/sessionState.js";
 import { invalidateCache, loadPreset } from "./services/presetLoader.js";
 import { setActivePreset } from "./services/sessionState.js";
 
-// ── Server initialization ─────────────────────────────────────────────────────
+// â”€â”€ Server initialization â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const server = new McpServer({
   name: "ui-preset-mcp-server",
-  version: "1.0.0",
+  version: "1.1.0",
 });
 
 // Register all tool groups
 registerPresetTools(server);
 registerCorrectionTools(server);
 registerStyleTools(server);
+registerQualityTools(server);
 
-// ── File watcher (dev mode) ───────────────────────────────────────────────────
+// â”€â”€ File watcher (dev mode) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 if (process.env.WATCH_PRESETS === "true") {
   startWatching(async (changedPresetId) => {
-    console.error(`[MCP] Preset '${changedPresetId}' changed on disk — reloading...`);
+    console.error(`[MCP] Preset '${changedPresetId}' changed on disk â€” reloading...`);
     invalidateCache(changedPresetId);
 
     // If the changed preset is the active one, reload it automatically
@@ -48,7 +50,7 @@ if (process.env.WATCH_PRESETS === "true") {
   });
 }
 
-// ── Transport ─────────────────────────────────────────────────────────────────
+// â”€â”€ Transport â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 async function runStdio(): Promise<void> {
   const transport = new StdioServerTransport();
@@ -74,7 +76,7 @@ async function runHTTP(): Promise<void> {
     res.json({
       status: "ok",
       server: "ui-preset-mcp-server",
-      version: "1.0.0",
+      version: "1.1.0",
       activePreset: getActivePresetId(),
     });
   });
@@ -100,3 +102,4 @@ if (transport === "http") {
     process.exit(1);
   });
 }
+
