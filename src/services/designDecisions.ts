@@ -225,25 +225,27 @@ export async function decideDesignDirection(
   return { ok: true, source: got ? "localjev" : "offline", model, latencyMs: Date.now() - started, decisions, chosen, error: got ? undefined : lastError };
 }
 
-/** Resolve a decision's chosen style to a concrete preset id (validated on disk). */
-export async function resolvePresetFor(style: string): Promise<{ found: boolean; preset?: Preset; available: string[] }> {
+/** Resolve a decision's chosen style to a concrete preset id (validated on disk).
+ * `fell_back` is true when the requested style is not on disk and the base
+ * preset is returned instead — the fallback is always explicit, never silent. */
+export async function resolvePresetFor(style: string): Promise<{ found: boolean; fell_back: boolean; preset?: Preset; available: string[] }> {
   const available = await listAvailablePresets();
   if (available.includes(style)) {
     try {
       const preset = await loadPreset(style);
-      return { found: true, preset, available };
+      return { found: true, fell_back: false, preset, available };
     } catch {
       /* fall through */
     }
   }
   if (available.includes("glassmorphic-base")) {
     try {
-      return { found: true, preset: await loadPreset("glassmorphic-base"), available };
+      return { found: true, fell_back: true, preset: await loadPreset("glassmorphic-base"), available };
     } catch {
       /* ignore */
     }
   }
-  return { found: false, available };
+  return { found: false, fell_back: false, available };
 }
 
 export function designSettings(env: Record<string, string | undefined> = process.env): DesignDecisionSettings {

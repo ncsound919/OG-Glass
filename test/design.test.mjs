@@ -196,3 +196,15 @@ test('generateKit: full React + CSS-var kit, deterministic, no hardcoded colors'
   assert.equal(kit.length, again.length);
   assert.equal(kit[0].content, again[0].content);
 });
+const { resolvePresetFor } = await import(pathToFileURL(join(dist, 'services', 'designDecisions.js')).href);
+
+test('resolvePresetFor: silent fallback is explicit', async () => {
+  const exact = await resolvePresetFor('style-flat-corporate');
+  assert.equal(exact.fell_back, false);
+  assert.equal(exact.preset.manifest.id, 'style-flat-corporate');
+
+  const missing = await resolvePresetFor('style-does-not-exist');
+  assert.equal(missing.found, true); // a usable preset is returned
+  assert.equal(missing.fell_back, true); // but the fallback is explicit
+  assert.equal(missing.preset.manifest.id, 'glassmorphic-base');
+});

@@ -489,7 +489,7 @@ export function registerUIRoutes(app: Express): void {
       if (typeof req.body?.precision === "boolean") overrides.precision = req.body.precision ? 1 : 0;
       if (typeof req.body?.dark === "boolean") overrides.dark = req.body.dark ? 1 : 0;
       const direction = await decideDesignDirection(goal, designSettings(), overrides);
-      const { found, preset, available } = await resolvePresetFor(direction.chosen.style);
+      const { found, preset, available, fell_back } = await resolvePresetFor(direction.chosen.style);
       const quality = preset ? validatePreset(preset) : null;
       const design_md = preset ? exportDesignMarkdown(preset) : null;
       let refined = null;
@@ -516,13 +516,19 @@ export function registerUIRoutes(app: Express): void {
         source: direction.source,
         decisions: direction.decisions,
         chosen: direction.chosen,
+        requested_style: direction.chosen.style,
         preset_resolved: found ? preset?.manifest.id : null,
+        fell_back,
         available_presets: available,
         quality,
         grade: preset ? gradeDesign(preset) : null,
         design_md,
         refined,
-        note: "Template + refined (math-enhanced) outputs provided — use `refined` for the high-end build.",
+        note: found
+          ? (fell_back
+              ? `Requested style '${direction.chosen.style}' is not on disk — fell back to '${preset?.manifest.id}'.`
+              : "Template + refined (math-enhanced) outputs provided — use `refined` for the high-end build.")
+          : `No preset on disk for '${direction.chosen.style}'.`,
       });
     } catch (err) {
       res.status(500).json({ error: String(err) });

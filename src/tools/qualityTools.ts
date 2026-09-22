@@ -157,7 +157,7 @@ Adheres each time = JEV decision + quality gate passed + DESIGN.md emitted.`,
         ...(typeof args.dark === "boolean" ? { dark: args.dark ? 1 : 0 } : {}),
       };
       const direction = await decideDesignDirection(goal, designSettings(), overrides);
-      const { found, preset, available } = await resolvePresetFor(direction.chosen.style);
+      const { found, preset, available, fell_back } = await resolvePresetFor(direction.chosen.style);
       const quality = preset ? validatePreset(preset) : null;
       const design_md = preset ? exportDesignMarkdown(preset) : null;
       // JEV picks the refinement strategy, math applies it to the template.
@@ -175,7 +175,9 @@ Adheres each time = JEV decision + quality gate passed + DESIGN.md emitted.`,
                 source: direction.source,
                 decisions: direction.decisions,
                 chosen: direction.chosen,
+                requested_style: direction.chosen.style,
                 preset_resolved: found ? preset?.manifest.id : null,
+                fell_back,
                 available_presets: available,
                 quality,
                 design_md,
@@ -193,7 +195,9 @@ Adheres each time = JEV decision + quality gate passed + DESIGN.md emitted.`,
                     }
                   : null,
                 note: found
-                  ? "Template + refined (math-enhanced, graded) outputs are both provided — use `refined` for the high-end build, template for the baseline."
+                  ? (fell_back
+                      ? `Requested style '${direction.chosen.style}' is not on disk — fell back to '${preset?.manifest.id}'. Refine the requested style or add its preset for a precise match.`
+                      : "Template + refined (math-enhanced, graded) outputs are both provided — use `refined` for the high-end build, template for the baseline.")
                   : `No preset on disk for '${direction.chosen.style}'; available: ${available.join(", ")}`,
               },
               null,
