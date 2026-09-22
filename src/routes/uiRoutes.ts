@@ -25,6 +25,9 @@ import { PRESETS_DIR, MANIFEST_FILE, TOKENS_FILE } from "../constants.js";
 import type { DesignTokens, PresetManifest } from "../types/index.js";
 import { STYLE_CATEGORIES_EXPORT, generatePaletteExport } from "../tools/styleTools.js";
 import { injectProps } from "../utils/templateUtils.js";
+import { validatePreset } from "../services/quality.js";
+import { exportDesignMarkdown } from "../services/designExport.js";
+import { decideDesignDirection, designSettings, resolvePresetFor, STYLE_CRITERIA, PALETTE_CRITERIA, GRAPHICS_CRITERIA } from "../services/designDecisions.js";
 
 // ── Rate limiter: 20 write requests per minute per IP ─────────────────────────
 const writeLimiter = rateLimit({
@@ -436,6 +439,66 @@ export function registerUIRoutes(app: Express): void {
         variant: variant ?? "default",
         availableProps: activeTemplate.propsSchema,
         availableVariants: Object.keys(template.variants ?? {}),
+      });
+    } catch (err) {
+      res.status(500).json({ error: String(err) });
+    }
+  });
+
+  // ---- Deterministic design-precision + JEV REST mirrors (no MCP needed) ----
+
+  app.get("/api/presets/quality", async (_req, res) => {
+    try {
+      const ids = await listAvailablePresets();
+      const rows = [];
+      for (const id of ids) {
+        try {
+          const report = validatePreset(await loadPreset(id));
+          rows.push({ preset_id: id, passed: report.passed, score: report.score, errors: report.summary.errors, warnings: report.summary.warnings });
+        } catch {
+          rows.push({ preset_id: id, passed: false, score: 0, errors: -1, warnings: -1 });
+        }
+      }
+      rows.sort((a, b) => b.score - a.score);
+      res.json({ ok: true, presets: rows });
+    } catch (err) {
+      res.status(500).json({ error: String(err) });
+    }
+  });
+
+  app.get("/api/presets/:presetId/design.md", async (req, res) => {
+    try {
+      const preset = await loadPreset(req.params.presetId);
+      res.set("Content-Type", "text/markdown; charset=utf-8");
+      res.send(exportDesignMarkdown(preset));
+    } catch {
+      res.status(404).json({ error: `preset '${req.params.presetId}' not found` });
+    }
+  });
+
+  app.post("/api/design-brief", async (req, res) => {
+    try {
+      const goal = String(req.body?.goal ?? "");
+      const overrides: Record<string, string | number> = {};
+      if (req.body?.style) overrides.style = String(req.body.style);
+      if (req.body?.palette) overrides.palette = String(req.body.palette);
+      if (req.body?.graphics) overrides.graphics = String(req.body.graphics);
+      if (typeof req.body?.precision === "boolean") overrides.precision = req.body.precision ? 1 : 0;
+      if (typeof req.body?.dark === "boolean") overrides.dark = req.body.dark ? 1 : 0;
+      const direction = await decideDesignDirection(goal, designSettings(), overrides);
+      const { found, preset, available } = await resolvePresetFor(direction.chosen.style);
+      const quality = preset ? validatePreset(preset) : null;
+      const design_md = preset ? exportDesignMarkdown(preset) : null;
+      res.json({
+        ok: direction.ok && found,
+        source: direction.source,
+        decisions: direction.decisions,
+        chosen: direction.chosen,
+        preset_resolved: found ? preset?.manifest.id : null,
+        available_presets: available,
+        quality,
+        design_md,
+        note: found ? "Quality gate must pass (passed=true) before this direction is used." : `no preset on disk for '${direction.chosen.style}'`,
       });
     } catch (err) {
       res.status(500).json({ error: String(err) });
