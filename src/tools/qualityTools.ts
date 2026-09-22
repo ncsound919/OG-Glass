@@ -13,8 +13,30 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { loadPreset, listAvailablePresets } from "../services/presetLoader.js";
 import { validatePreset } from "../services/quality.js";
 import { exportDesignMarkdown } from "../services/designExport.js";
-import { decideDesignDirection, designSettings, resolvePresetFor, STYLE_CRITERIA, PALETTE_CRITERIA, GRAPHICS_CRITERIA } from "../services/designDecisions.js";
-import { ValidatePresetSchema, DesignBriefSchema, DecideDirectionSchema } from "../schemas/toolSchemas.js";
+import { refineDesign, DEFAULT_STRATEGY } from "../services/refine.js";
+import { decideDesignDirection, decideRefinement, designSettings, resolvePresetFor, STYLE_CRITERIA, PALETTE_CRITERIA, GRAPHICS_CRITERIA } from "../services/designDecisions.js";
+import { ValidatePresetSchema, DesignBriefSchema, DecideDirectionSchema, RefineDesignSchema } from "../schemas/toolSchemas.js";
+import type { Preset } from "../types/index.js";
+
+function refinePresetResult(preset: Preset, _goal: string, overrides: Record<string, string | number>) {
+  const strategy = overrides && Object.keys(overrides).length
+    ? { ...DEFAULT_STRATEGY, ...overrides }
+    : DEFAULT_STRATEGY;
+  const refined = refineDesign(preset.tokens, strategy);
+  const refinedPreset = {
+    ...preset,
+    manifest: { ...preset.manifest, id: `${preset.manifest.id}-refined`, name: `${preset.manifest.name} (refined)` },
+    tokens: refined.tokens,
+  };
+  const quality = validatePreset(refinedPreset);
+  return {
+    strategy,
+    math_report: refined.report,
+    refined_tokens: refined.tokens,
+    refined_quality: quality,
+    refined_design_md: exportDesignMarkdown(refinedPreset),
+  };
+}
 
 export function registerQualityTools(server: McpServer): void {
   server.registerTool(
@@ -133,6 +155,11 @@ Adheres each time = JEV decision + quality gate passed + DESIGN.md emitted.`,
       const { found, preset, available } = await resolvePresetFor(direction.chosen.style);
       const quality = preset ? validatePreset(preset) : null;
       const design_md = preset ? exportDesignMarkdown(preset) : null;
+      // JEV picks the refinement strategy, math applies it to the template.
+      const refinement = found && preset
+        ? await decideRefinement(goal, preset.manifest.id, designSettings())
+        : null;
+      const refined = found && preset && refinement ? refinePresetResult(preset, goal, { ...refinement.strategy }) : null;
       return {
         content: [
           {
@@ -147,8 +174,19 @@ Adheres each time = JEV decision + quality gate passed + DESIGN.md emitted.`,
                 available_presets: available,
                 quality,
                 design_md,
+                refinement: refinement
+                  ? { source: refinement.source, decisions: refinement.decisions, strategy: refinement.strategy }
+                  : null,
+                refined: refined
+                  ? {
+                      strategy: refined.strategy,
+                      math_report: refined.math_report,
+                      refined_quality: refined.refined_quality,
+                      refined_design_md: refined.refined_design_md,
+                    }
+                  : null,
                 note: found
-                  ? "Quality gate must pass (passed=true) before this direction is used."
+                  ? "Template + refined (math-enhanced) outputs are both provided — use `refined` for the high-end build, template for the baseline."
                   : `No preset on disk for '${direction.chosen.style}'; available: ${available.join(", ")}`,
               },
               null,
@@ -157,6 +195,28 @@ Adheres each time = JEV decision + quality gate passed + DESIGN.md emitted.`,
           },
         ],
       };
+    },
+  );
+
+  server.registerTool(
+    "refine_design",
+    {
+      title: "Refine Design (math-enhanced)",
+      description: `Takes a template preset and improves it deterministically using math:
+golden/modular spacing + type scale, harmonic accent palette, proportional radius.
+JEV (or explicit overrides) picks the strategy. Returns refined tokens, the math
+report of every change, the refined quality-gate result, and the refined DESIGN.md.`,
+      inputSchema: RefineDesignSchema,
+    },
+    async (args) => {
+      const presetId = String(args.preset_id ?? "");
+      try {
+        const preset = await loadPreset(presetId);
+        const refined = refinePresetResult(preset, "", {});
+        return { content: [{ type: "text", text: JSON.stringify(refined, null, 2) }] };
+      } catch (err) {
+        return { content: [{ type: "text", text: `Preset '${presetId}' not found: ${(err as Error).message}` }], isError: true };
+      }
     },
   );
 }

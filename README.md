@@ -16,6 +16,36 @@ principles and current frontend practice:
 | `list_preset_quality` | Quality score for every preset, sorted. Use it to pick the most precise preset for a project. |
 | `export_design_markdown` | Exports a preset's tokens as a Stitch/awesome-design-md `DESIGN.md` (palette, typography, spacing, depth, components, do's/don'ts, agent prompt guide). Deterministic. |
 
+### Math-enhanced refinement (JEV decides, math improves)
+
+Presets are **templates, not final output**. `design_brief` returns both:
+
+- `design_md` — the template as-is
+- `refined` — the template **creatively improved by math**: JEV picks the
+  strategy (`decideRefinement`: golden-ratio / perfect-fourth / major-third
+  spacing+type, analogous / complementary / triadic / split-complementary /
+  monochrome harmony, precision, detail), then a deterministic engine applies it:
+
+  - **Spacing** → golden-ratio scale `round4(4·φ^i)` kept on the 4pt grid
+  - **Type** → modular scale `0.8125rem · ratio^i` (strictly increasing)
+  - **Color** → harmonic accent family derived from the primary hue (HSL offsets)
+  - **Radius** → proportional to the refined scale
+
+Every change is logged in a `math_report` (`{field, before, after, math}`), the
+refined preset passes the **quality gate**, and a refined `DESIGN.md` is emitted.
+This is the deterministic math core (same substance as math-x's Pyodide/SymPy
+subsystems) computed in-process — no LLM, and math-x's LLM-routed API is not called.
+
+```json
+{ "strategy": { "ratio": "golden", "harmony": "complementary", "precision": 1, "detail": 1 },
+  "math_report": { "steps": [ { "field": "spacing.scale", "math": "round4(4 × φ^i)" } ] },
+  "refined_quality": { "passed": true, "score": 100 },
+  "refined_design_md": "# DESIGN.md — Flat Corporate (refined)" }
+```
+
+`refine_design` tool refines any preset; REST: `POST /api/design-brief` returns
+the same shape.
+
 The quality gate is the prerequisite: **all 14 presets pass it** (muted text in
 the legacy dark presets was darkened to reach AA — the gate caught the failures).
 

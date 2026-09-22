@@ -27,7 +27,8 @@ import { STYLE_CATEGORIES_EXPORT, generatePaletteExport } from "../tools/styleTo
 import { injectProps } from "../utils/templateUtils.js";
 import { validatePreset } from "../services/quality.js";
 import { exportDesignMarkdown } from "../services/designExport.js";
-import { decideDesignDirection, designSettings, resolvePresetFor, STYLE_CRITERIA, PALETTE_CRITERIA, GRAPHICS_CRITERIA } from "../services/designDecisions.js";
+import { refineDesign, DEFAULT_STRATEGY } from "../services/refine.js";
+import { decideDesignDirection, decideRefinement, designSettings, resolvePresetFor, STYLE_CRITERIA, PALETTE_CRITERIA, GRAPHICS_CRITERIA } from "../services/designDecisions.js";
 
 // ── Rate limiter: 20 write requests per minute per IP ─────────────────────────
 const writeLimiter = rateLimit({
@@ -489,6 +490,23 @@ export function registerUIRoutes(app: Express): void {
       const { found, preset, available } = await resolvePresetFor(direction.chosen.style);
       const quality = preset ? validatePreset(preset) : null;
       const design_md = preset ? exportDesignMarkdown(preset) : null;
+      let refined = null;
+      if (found && preset) {
+        const refinement = await decideRefinement(goal, preset.manifest.id, designSettings());
+        const r = refineDesign(preset.tokens, refinement.strategy);
+        const refinedPreset = {
+          ...preset,
+          manifest: { ...preset.manifest, id: `${preset.manifest.id}-refined`, name: `${preset.manifest.name} (refined)` },
+          tokens: r.tokens,
+        };
+        refined = {
+          source: refinement.source,
+          strategy: refinement.strategy,
+          math_report: r.report,
+          refined_quality: validatePreset(refinedPreset),
+          refined_design_md: exportDesignMarkdown(refinedPreset),
+        };
+      }
       res.json({
         ok: direction.ok && found,
         source: direction.source,
@@ -498,7 +516,8 @@ export function registerUIRoutes(app: Express): void {
         available_presets: available,
         quality,
         design_md,
-        note: found ? "Quality gate must pass (passed=true) before this direction is used." : `no preset on disk for '${direction.chosen.style}'`,
+        refined,
+        note: "Template + refined (math-enhanced) outputs provided — use `refined` for the high-end build.",
       });
     } catch (err) {
       res.status(500).json({ error: String(err) });

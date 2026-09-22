@@ -16,6 +16,8 @@
 
 import type { Preset } from "../types/index.js";
 import { listAvailablePresets, loadPreset } from "./presetLoader.js";
+import { RefinementStrategy, DEFAULT_STRATEGY } from "./refine.js";
+import type { Harmony } from "./colorMath.js";
 
 export interface DesignDecisionSettings {
   baseUrl: string;
@@ -251,4 +253,142 @@ export function designSettings(env: Record<string, string | undefined> = process
     enabled: (env.OG_GLASS_JEV_ENABLED ?? env.CHEETAH_JEV_ENABLED ?? "1") !== "0",
     maxAttempts: 3,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Refinement decisions — JEV picks HOW to improve the template, then math does it.
+// ---------------------------------------------------------------------------
+
+export const RATIO_CRITERIA: Record<string, string> = {
+  golden: "golden ratio (φ=1.618) — the classic high-end proportional system",
+  fourth: "perfect fourth (4:3) — generous, editorial",
+  third: "major third (5:4) — dense, compact, data-heavy",
+};
+
+export const HARMONY_CRITERIA: Record<string, string> = {
+  analogous: "hues adjacent on the wheel — calm, cohesive",
+  complementary: "opposing hues — maximum energy and contrast",
+  triadic: "three evenly spaced hues — balanced vibrance",
+  "split-complementary": "base plus the two flanking opposites — rich but harmonious",
+  monochrome: "single hue, tonal depth — quiet luxury",
+};
+
+export interface RefinementDirection {
+  ok: boolean;
+  source: "localjev" | "offline";
+  decisions: Array<{ id: string; source: string; decision: string | number | boolean; confidence?: number; error?: string }>;
+  strategy: RefinementStrategy;
+  error?: string;
+  latencyMs: number;
+}
+
+export async function decideRefinement(
+  goal: string,
+  templatePreset: string,
+  settings: DesignDecisionSettings = designSettings(),
+  overrides?: Partial<RefinementStrategy>,
+): Promise<RefinementDirection> {
+  const started = Date.now();
+  const base: RefinementStrategy = { ...DEFAULT_STRATEGY };
+  const resolved: RefinementStrategy = {
+    ratio: overrides?.ratio ?? base.ratio,
+    harmony: overrides?.harmony ?? base.harmony,
+    precision: overrides?.precision ?? base.precision,
+    detail: overrides?.detail ?? base.detail,
+  };
+
+  const decisions: RefinementDirection["decisions"] = [];
+  if (!settings.enabled) {
+    for (const [id, d] of Object.entries(resolved)) decisions.push({ id, source: "offline", decision: d });
+    return { ok: true, source: "offline", decisions, strategy: resolved, latencyMs: Date.now() - started };
+  }
+
+  const payload = {
+    model: "jev-latest",
+    state: {
+      task: "Choose how to refine a design template into a precise, high-end system.",
+      goal: (goal || "").slice(0, 800),
+      template_preset: templatePreset,
+      ratio_criteria: RATIO_CRITERIA,
+      harmony_criteria: HARMONY_CRITERIA,
+      principles: [
+        "Prefer the golden ratio for premium/luxury and editorial projects.",
+        "Prefer major-third spacing for dense data dashboards.",
+        "Harmony must keep the primary brand hue — every derived color is a tonal relative.",
+        "Precision=1: enforce WCAG AA contrast + 4pt grid on the refined output.",
+        "Detail=1: a 9-step type scale and full elevation for depth.",
+      ],
+    },
+    questions: {
+      ratio: { type: "choice", instructions: "Which proportional ratio for spacing + type?", criteria: RATIO_CRITERIA },
+      harmony: { type: "choice", instructions: "Which color-harmony system?", criteria: HARMONY_CRITERIA },
+      precision: { type: "noul", instructions: "Strict precision gate?", criteria: { "1": "strict", "0": "expressive" } },
+      detail: { type: "noul", instructions: "Rich detail (9-step type, full depth)?", criteria: { "1": "rich", "0": "restrained" } },
+    },
+  };
+
+  let lastError = "request failed";
+  let answers: Record<string, unknown> | undefined;
+  let got = false;
+  for (let attempt = 0; attempt < settings.maxAttempts; attempt++) {
+    if (attempt > 0) await new Promise((r) => setTimeout(r, Math.min(300, 200 * attempt)));
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), settings.timeoutMs);
+      let res: Response;
+      try {
+        res = await fetch(`${settings.baseUrl}/v1/systemone`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timer);
+      }
+      if (RETRYABLE.has(res.status)) {
+        lastError = `HTTP ${res.status} (transient overload; retrying)`;
+        continue;
+      }
+      if (res.status !== 200) {
+        lastError = `POST /v1/systemone -> HTTP ${res.status}`;
+        break;
+      }
+      const body = (await res.json()) as { answers?: Record<string, unknown> };
+      if (!body.answers) {
+        lastError = "JEV response missing answers";
+        break;
+      }
+      answers = body.answers;
+      got = true;
+      break;
+    } catch (err) {
+      lastError = err instanceof Error ? err.message : String(err);
+      break;
+    }
+  }
+
+  const pick = <T extends string>(id: string, list: Record<string, T>): T | undefined => {
+    const a = answers?.[id] as { type?: string; choice?: string } | undefined;
+    return a?.type === "choice" && a.choice && a.choice in list ? (a.choice as T) : undefined;
+  };
+  const noul = (id: string): number | undefined => {
+    const a = answers?.[id] as { type?: string; noul?: number } | undefined;
+    return a?.type === "noul" && typeof a.noul === "number" ? a.noul : undefined;
+  };
+
+  const ratio = overrides?.ratio ?? pick("ratio", RATIO_CRITERIA as Record<string, RefinementStrategy["ratio"]>) ?? resolved.ratio;
+  const harmony = overrides?.harmony ?? pick("harmony", HARMONY_CRITERIA as Record<string, Harmony>) ?? resolved.harmony;
+  const pv = noul("precision");
+  const dv = noul("detail");
+  const precision = overrides?.precision ?? (typeof pv === "number" ? (pv >= 0.5 ? 1 : 0) : resolved.precision);
+  const detail = overrides?.detail ?? (typeof dv === "number" ? (dv >= 0.5 ? 1 : 0) : resolved.detail);
+  const strategy: RefinementStrategy = { ratio, harmony, precision, detail };
+
+  for (const [id, d] of Object.entries(strategy)) {
+    if (overrides && id in overrides) decisions.push({ id, source: "default", decision: d });
+    else decisions.push({ id, source: got ? "localjev" : "offline", decision: d, error: got ? undefined : lastError });
+  }
+
+  return { ok: true, source: got ? "localjev" : "offline", decisions, strategy, error: got ? undefined : lastError, latencyMs: Date.now() - started };
 }

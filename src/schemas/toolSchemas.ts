@@ -171,6 +171,10 @@ export const DecideDirectionSchema = {
   goal: z.string().max(2000).describe("Project description to direct the design decision"),
 };
 
+export const RefineDesignSchema = {
+  preset_id: z.string().describe("Template preset to refine, e.g. 'style-flat-corporate'"),
+};
+
 export const DesignBriefSchema = {
   goal: z.string().max(2000).describe("Project description to direct the design decision"),
   style: z
