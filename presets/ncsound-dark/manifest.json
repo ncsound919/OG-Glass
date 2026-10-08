@@ -1,0 +1,12 @@
+{
+  "id": "ncsound-dark",
+  "name": "NCSound Dark",
+  "description": "Premium dark broadcaster UI for NCSound Radio: near-black substrate, a single amber accent, hierarchical white text, editorial spacing.",
+  "version": "1.0.0",
+  "extends": "client-dark-minimal",
+  "tags": [
+    "custom"
+  ],
+  "components": [],
+  "layouts": []
+}

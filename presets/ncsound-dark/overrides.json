@@ -1,0 +1,13 @@
+{
+  "colors": {
+    "text": {
+      "primary": "#ffffff",
+      "secondary": "#c7ccd6",
+      "muted": "#8b93a1"
+    },
+    "accent": {
+      "primary": "#ffb020",
+      "primaryHover": "#ffc45c"
+    }
+  }
+}
