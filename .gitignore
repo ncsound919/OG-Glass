@@ -1,3 +1,7 @@
 node_modules/
 dist/
 *.js.map
+
+# Junctions to the canonical brand repo (BUSINESS/brand/presets) — do not commit the targets.
+presets/overlay365-openhub-dark/
+presets/overlay365-opencode-dark/
