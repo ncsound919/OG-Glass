@@ -29,6 +29,7 @@ import { validatePreset } from "../services/quality.js";
 import { exportDesignMarkdown } from "../services/designExport.js";
 import { gradeDesign } from "../services/grade.js";
 import { generateKit } from "../services/kitGenerator.js";
+import { renderMarketingHtml, renderReportHtml, type MarketingDocument, type ReportDocument } from "../services/reportKit.js";
 import { refineDesign, DEFAULT_STRATEGY } from "../services/refine.js";
 import { decideDesignDirection, decideRefinement, designSettings, resolvePresetFor, STYLE_CRITERIA, PALETTE_CRITERIA, GRAPHICS_CRITERIA } from "../services/designDecisions.js";
 
@@ -550,6 +551,50 @@ export function registerUIRoutes(app: Express): void {
       res.json({ ok: true, preset_id: preset.manifest.id, grade: gradeDesign(preset), files: generateKit(preset) });
     } catch {
       res.status(404).json({ error: `preset '${req.params.presetId}' not found` });
+    }
+  });
+
+  // ── Report and marketing HTML ───────────────────────────────────────────────
+  // The caller supplies the document; OG-Glass supplies the design tokens. The
+  // output is a single self-contained file: no CDN, no script, no external font.
+  // Deterministic, so the same document renders byte-identically every time.
+  app.post("/api/reports/render", writeLimiter, async (req, res) => {
+    try {
+      const preset = await loadPreset(String(req.body?.preset_id ?? "style-healthcare"));
+      const document = req.body?.document as ReportDocument | undefined;
+      if (!document || typeof document.title !== "string" || !Array.isArray(document.sections)) {
+        res.status(400).json({ error: "document.title (string) and document.sections (array) are required" });
+        return;
+      }
+      const html = renderReportHtml(document, preset.tokens);
+      if (req.query.format === "json") {
+        res.json({ ok: true, preset_id: preset.manifest.id, bytes: Buffer.byteLength(html), html });
+        return;
+      }
+      res.set("Content-Type", "text/html; charset=utf-8");
+      res.send(html);
+    } catch (err) {
+      res.status(500).json({ error: String(err) });
+    }
+  });
+
+  app.post("/api/marketing/render", writeLimiter, async (req, res) => {
+    try {
+      const preset = await loadPreset(String(req.body?.preset_id ?? "style-healthcare"));
+      const document = req.body?.document as MarketingDocument | undefined;
+      if (!document || typeof document.brand !== "string" || !document.hero || !Array.isArray(document.sections)) {
+        res.status(400).json({ error: "document.brand, document.hero and document.sections are required" });
+        return;
+      }
+      const html = renderMarketingHtml(document, preset.tokens);
+      if (req.query.format === "json") {
+        res.json({ ok: true, preset_id: preset.manifest.id, bytes: Buffer.byteLength(html), html });
+        return;
+      }
+      res.set("Content-Type", "text/html; charset=utf-8");
+      res.send(html);
+    } catch (err) {
+      res.status(500).json({ error: String(err) });
     }
   });
 }
