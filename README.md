@@ -70,6 +70,40 @@ OptionGroup, NavGroup.
 The quality gate is the prerequisite: **all 14 presets pass it** (muted text in
 the legacy dark presets was darkened to reach AA — the gate caught the failures).
 
+### Marketing creative tokens + design recipes
+
+`export_creative_tokens` (tool + `GET /api/presets/:id/creative-tokens`) turns a preset into the
+numbers a campaign renderer needs: 17 deliverable canvases with a column grid, safe inset and
+optical type scale; 14 art-direction palettes; 10 display/text pairings; 23 art directions; a
+gradient recipe and the glass alphas. `format=kotlin` emits the compiled token object for
+GrowthOS, and `format=looks` emits the generated art-direction Kotlin, so the Android renderer
+and the MCP cannot drift.
+
+`design_recipe` (tool + `GET /api/creative/recipes`) turns a plain-language brief into a
+complete direction: the concept and rationale, look, palette, type pairing with bundled font
+ids, column grid and safe areas, copy hierarchy with sizes and line limits, visual devices,
+per-format adaptations, copy rules and anti-patterns. It is deterministic and returns up to four
+alternates.
+
+```bash
+curl -s http://127.0.0.1:3101/api/presets/glassmorphic-base/creative-tokens
+curl -s "http://127.0.0.1:3101/api/presets/glassmorphic-base/creative-tokens?format=kotlin"
+curl -s "http://127.0.0.1:3101/api/presets/glassmorphic-base/creative-tokens?format=looks"
+curl -s http://127.0.0.1:3101/api/creative/catalog
+curl -s "http://127.0.0.1:3101/api/creative/recipes?goal=autumn%20menu%20for%20a%20bakery&deliverable=menu"
+```
+
+GrowthOS export (writes the generated Kotlin, the test snapshot and the worked recipe kit):
+
+```bash
+npm run build
+GROWTHOS_DIR="C:/Users/tap45/Downloads/phone-apps/marketing-studio" \
+  node scripts/export-growthos.mjs
+```
+
+The exporter is deterministic and offline: no LLM, no network, same input -> same bytes. The
+craft rules and the reference list live in `docs/DESIGN-REFERENCES.md` in the GrowthOS repo.
+
 ### New style presets (beyond glassmorphism)
 
 `style-flat-corporate`, `style-material`, `style-healthcare`, `style-editorial`,
@@ -147,6 +181,8 @@ ui-preset-mcp-server/
 | `diff_presets` | Compare token/component differences between two presets |
 | `scaffold_preset` | Generate a new preset directory from a parent |
 | `get_session_state` | Check active preset and runtime overrides |
+| `export_creative_tokens` | Export deliverable sizes, grid, type scale, palettes, pairings and looks as JSON/Kotlin |
+| `design_recipe` | Turn a brief into a deterministic art direction with grid, hierarchy and format rules |
 
 ### Correction & Generation
 | Tool | Description |
@@ -234,6 +270,8 @@ The UI communicates with the server via a REST API also available at `/api/*`.
 | `/api/scaffold` | POST | Create new preset `{ preset_id, name, description, extends, accent_color }` |
 | `/api/styles` | GET | List all design style categories with metadata |
 | `/api/palette` | POST | Generate color palette `{ seed_color, harmony, include_shades }` |
+| `/api/creative/catalog` | GET | Full creative catalog: palettes, deliverables, pairings, looks, concepts |
+| `/api/creative/recipes?goal=&deliverable=&seed=` | GET | Deterministic art directions and alternates |
 
 ## Typical Workflow
 

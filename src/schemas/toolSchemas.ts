@@ -175,6 +175,42 @@ export const RefineDesignSchema = {
   preset_id: z.string().describe("Template preset to refine, e.g. 'style-flat-corporate'"),
 };
 
+export const ExportCreativeTokensSchema = {
+  preset_id: z
+    .string()
+    .optional()
+    .describe("Preset whose accent tokens seed the art directions (default: glassmorphic-base)"),
+  format: z
+    .enum(["json", "kotlin", "looks"])
+    .optional()
+    .describe("json for inspection, kotlin for the GrowthOS renderer, looks for the art-direction catalog (default: json)"),
+};
+
+export const DesignRecipeSchema = {
+  goal: z
+    .string()
+    .min(3)
+    .max(800)
+    .describe("Plain-language brief, e.g. 'autumn menu for a neighbourhood bakery' or 'premium skincare launch'"),
+  deliverable: z
+    .string()
+    .optional()
+    .describe("Deliverable id to compose for (flyer, poster, coupon, web-banner, menu, ...). Defaults to flyer."),
+  seed: z
+    .string()
+    .max(120)
+    .optional()
+    .describe("Optional seed to re-roll the direction deterministically"),
+  look_id: z
+    .string()
+    .optional()
+    .describe("Pin a specific look id from the exported catalog"),
+  include_alternates: z
+    .boolean()
+    .default(true)
+    .describe("Return up to four directions instead of one"),
+};
+
 export const DesignBriefSchema = {
   goal: z.string().max(2000).describe("Project description to direct the design decision"),
   style: z

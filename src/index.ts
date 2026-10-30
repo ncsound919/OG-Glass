@@ -10,6 +10,7 @@ import { registerPresetTools } from "./tools/presetTools.js";
 import { registerCorrectionTools } from "./tools/correctionTools.js";
 import { registerStyleTools } from "./tools/styleTools.js";
 import { registerQualityTools } from "./tools/qualityTools.js";
+import { registerCreativeTools } from "./tools/creativeTools.js";
 import { registerUIRoutes } from "./routes/uiRoutes.js";
 import { startWatching } from "./services/fileWatcher.js";
 import { getActivePresetId } from "./services/sessionState.js";
@@ -28,6 +29,7 @@ registerPresetTools(server);
 registerCorrectionTools(server);
 registerStyleTools(server);
 registerQualityTools(server);
+registerCreativeTools(server);
 
 // â”€â”€ File watcher (dev mode) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 

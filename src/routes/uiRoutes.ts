@@ -31,6 +31,8 @@ import { gradeDesign } from "../services/grade.js";
 import { generateKit } from "../services/kitGenerator.js";
 import { renderMarketingHtml, renderReportHtml, type MarketingDocument, type ReportDocument } from "../services/reportKit.js";
 import { refineDesign, DEFAULT_STRATEGY } from "../services/refine.js";
+import { buildCreativeTokens, toKotlin, toKotlinLooks } from "../services/creativeTokens.js";
+import { buildDesignRecipe, buildRecipeOptions, RECIPE_CONCEPTS } from "../services/creativeRecipes.js";
 import { decideDesignDirection, decideRefinement, designSettings, resolvePresetFor, STYLE_CRITERIA, PALETTE_CRITERIA, GRAPHICS_CRITERIA } from "../services/designDecisions.js";
 
 // ── Rate limiter: 20 write requests per minute per IP ─────────────────────────
@@ -531,6 +533,64 @@ export function registerUIRoutes(app: Express): void {
               : "Template + refined (math-enhanced) outputs provided — use `refined` for the high-end build.")
           : `No preset on disk for '${direction.chosen.style}'.`,
       });
+    } catch (err) {
+      res.status(500).json({ error: String(err) });
+    }
+  });
+
+  app.get("/api/presets/:presetId/creative-tokens", async (req, res) => {
+    try {
+      const preset = await loadPreset(req.params.presetId);
+      const tokens = buildCreativeTokens(preset);
+      if (req.query.format === "kotlin") {
+        res.type("text/plain").send(toKotlin(tokens));
+        return;
+      }
+      if (req.query.format === "looks") {
+        res.type("text/plain").send(toKotlinLooks(tokens));
+        return;
+      }
+      res.json(tokens);
+    } catch {
+      res.status(404).json({ error: `preset '${req.params.presetId}' not found` });
+    }
+  });
+
+  // ── Creative catalog + recipe engine ────────────────────────────────────────
+  // These mirror the MCP tools so the Design Studio (or a build script) can
+  // fetch the same deterministic output without an MCP client.
+  app.get("/api/creative/catalog", async (_req, res) => {
+    try {
+      const preset = await loadPreset("glassmorphic-base");
+      const tokens = buildCreativeTokens(preset);
+      res.json({
+        ok: true,
+        preset: tokens.preset,
+        version: tokens.version,
+        palettes: tokens.palettes,
+        deliverables: tokens.deliverables,
+        pairings: tokens.typePairings,
+        looks: tokens.looks,
+        concepts: RECIPE_CONCEPTS
+      });
+    } catch (err) {
+      res.status(500).json({ error: String(err) });
+    }
+  });
+
+  app.get("/api/creative/recipes", async (req, res) => {
+    try {
+      const goal = String(req.query.goal ?? "a launch for a small independent brand");
+      const deliverable = req.query.deliverable ? String(req.query.deliverable) : undefined;
+      const seed = req.query.seed ? String(req.query.seed) : undefined;
+      const lookId = req.query.look_id ? String(req.query.look_id) : undefined;
+      const preset = await loadPreset("glassmorphic-base");
+      const tokens = buildCreativeTokens(preset);
+      if (lookId) {
+        res.json({ ok: true, recipes: [buildDesignRecipe(tokens, { goal, deliverable, seed, lookId })] });
+        return;
+      }
+      res.json({ ok: true, recipes: buildRecipeOptions(tokens, { goal, deliverable, seed }) });
     } catch (err) {
       res.status(500).json({ error: String(err) });
     }
